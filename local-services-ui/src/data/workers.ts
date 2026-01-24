@@ -1,0 +1,138 @@
+export interface Worker {
+  id: string;
+  name: string;
+  service: string;
+  rating: number;
+  reviews: number;
+  price: number;
+  languages: string[];
+  image: string;
+  experience: number;
+  verified: boolean;
+  description: string;
+  distance: string;
+  availability: string;
+}
+
+export const workers: Worker[] = [
+  {
+    id: "worker-1",
+    name: "Rajesh Kumar",
+    service: "plumber",
+    rating: 4.8,
+    reviews: 156,
+    price: 500,
+    languages: ["Hindi", "English"],
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+    experience: 12,
+    verified: true,
+    description: "Expert plumber with 12 years of experience. Specializes in leaks, pipe installations, and bathroom fixtures.",
+    distance: "2.3 km away",
+    availability: "Available today",
+  },
+  {
+    id: "worker-2",
+    name: "Amit Sharma",
+    service: "electrician",
+    rating: 4.9,
+    reviews: 203,
+    price: 600,
+    languages: ["Hindi", "English", "Marathi"],
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop",
+    experience: 15,
+    verified: true,
+    description: "Licensed electrician. Handles wiring, repairs, installations, and emergency electrical work.",
+    distance: "1.8 km away",
+    availability: "Available in 2 hours",
+  },
+  {
+    id: "worker-3",
+    name: "Priya Desai",
+    service: "carpenter",
+    rating: 4.7,
+    reviews: 89,
+    price: 700,
+    languages: ["Hindi", "Gujarati", "English"],
+    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop",
+    experience: 8,
+    verified: true,
+    description: "Skilled carpenter creating custom furniture and woodwork. Modern and traditional designs available.",
+    distance: "3.2 km away",
+    availability: "Available tomorrow",
+  },
+  {
+    id: "worker-4",
+    name: "Vikram Singh",
+    service: "painter",
+    rating: 4.6,
+    reviews: 145,
+    price: 400,
+    languages: ["Hindi", "Punjabi", "English"],
+    image: "https://images.unsplash.com/photo-1507002672773-0c1688d1e8a1?w=400&h=400&fit=crop",
+    experience: 10,
+    verified: true,
+    description: "Professional painter for interior and exterior work. Eco-friendly paints available.",
+    distance: "2.1 km away",
+    availability: "Available in 4 hours",
+  },
+  {
+    id: "worker-5",
+    name: "Sanjay Patel",
+    service: "mechanic",
+    rating: 4.8,
+    reviews: 167,
+    price: 800,
+    languages: ["Hindi", "Gujarati", "English"],
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop",
+    experience: 14,
+    verified: true,
+    description: "Certified mechanic for car repairs, maintenance, and regular servicing. All car models.",
+    distance: "4.5 km away",
+    availability: "Available in 1 hour",
+  },
+  {
+    id: "worker-6",
+    name: "Neha Singh",
+    service: "cleaner",
+    rating: 4.5,
+    reviews: 78,
+    price: 300,
+    languages: ["Hindi", "English"],
+    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop",
+    experience: 5,
+    verified: true,
+    description: "Professional cleaning services for homes and offices. Deep cleaning and regular maintenance.",
+    distance: "1.5 km away",
+    availability: "Available today",
+  },
+  {
+    id: "worker-7",
+    name: "Arun Reddy",
+    service: "plumber",
+    rating: 4.7,
+    reviews: 134,
+    price: 550,
+    languages: ["Telugu", "Hindi", "English"],
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+    experience: 11,
+    verified: true,
+    description: "Experienced plumber for all plumbing needs. Quick response and quality work guaranteed.",
+    distance: "2.8 km away",
+    availability: "Available now",
+  },
+  {
+    id: "worker-8",
+    name: "Deepak Kumar",
+    service: "electrician",
+    rating: 4.6,
+    reviews: 112,
+    price: 650,
+    languages: ["Hindi", "English"],
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop",
+    experience: 9,
+    verified: true,
+    description: "Reliable electrician for domestic and commercial electrical work. Safety first approach.",
+    distance: "3.5 km away",
+    availability: "Available in 3 hours",
+  },
+];
