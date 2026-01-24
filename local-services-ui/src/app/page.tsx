@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ServiceCard } from "@/components/ServiceCard";
 import { WorkerCard } from "@/components/WorkerCard";
-import { services } from "@/data/services";
+import { services, serviceCategories, getServicesByCategory, getPopularServices } from "@/data/services";
 import { workers } from "@/data/workers";
-import { Search, Users, Award, Zap, CheckCircle, Clock, Shield, Star, Phone, MapPin, ArrowRight, Calendar, HeartHandshake, TrendingUp, X } from "lucide-react";
+import { Search, Users, Award, Zap, CheckCircle, Clock, Shield, Star, Phone, MapPin, ArrowRight, Calendar, HeartHandshake, TrendingUp, X, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -14,6 +14,51 @@ export default function Home() {
   const featuredWorkers = workers.slice(0, 3);
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const [particles, setParticles] = useState<Array<{left: number, top: number, delay: number, duration: number}>>([]);
+
+  // Filtering state - same as search page
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("popular");
+  const [showFiltered, setShowFiltered] = useState(false);
+
+  // Filter services - same logic as search page
+  const filteredServices = useMemo(() => {
+    let filtered = services;
+
+    // Filter by category
+    if (selectedCategory && selectedCategory !== "all") {
+      filtered = getServicesByCategory(selectedCategory);
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(service => 
+        service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        service.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        service.category.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Sort services
+    switch (sortBy) {
+      case "popular":
+        return [...filtered].sort((a, b) => b.bookings - a.bookings);
+      case "rating":
+        return [...filtered].sort((a, b) => b.rating - a.rating);
+      case "price-low":
+        return [...filtered].sort((a, b) => a.price - b.price);
+      case "price-high":
+        return [...filtered].sort((a, b) => b.price - a.price);
+      default:
+        return filtered;
+    }
+  }, [searchQuery, selectedCategory, sortBy]);
+
+  // Handle category selection
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setShowFiltered(true);
+  };
 
   // Generate particles on client side only
   useEffect(() => {
@@ -33,17 +78,18 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-amber-50">
-      {/* Premium Hero Section - Landscape Mode */}
-      <section className="relative bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 py-32 overflow-hidden">
-        {/* Decorative Elements */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-amber-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse"></div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-teal-50">
+      {/* Premium Hero Section - Rich Dark Gradient */}
+      <section className="relative bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 py-32 overflow-hidden">
+        {/* Enhanced Decorative Elements */}
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-purple-600/20 to-teal-500/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-teal-600/20 to-blue-500/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-gradient-to-br from-blue-600/15 to-purple-500/15 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-500"></div>
         
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="w-full h-full" style={{
-            backgroundImage: "radial-gradient(circle at 25px 25px, rgb(251, 191, 36) 2px, transparent 0), radial-gradient(circle at 75px 75px, rgb(245, 158, 11) 2px, transparent 0)",
+            backgroundImage: "radial-gradient(circle at 25px 25px, rgb(147, 51, 234) 2px, transparent 0), radial-gradient(circle at 75px 75px, rgb(20, 184, 166) 2px, transparent 0)",
             backgroundSize: "100px 100px"
           }}></div>
         </div>
@@ -119,53 +165,53 @@ export default function Home() {
             {/* Book Services Now - Primary CTA */}
             <Link
               href="/search"
-              className="group relative inline-flex items-center justify-center gap-4 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 text-gray-900 px-16 py-6 rounded-3xl font-black text-2xl shadow-2xl hover:shadow-yellow-500/25 transform hover:scale-110 transition-all duration-500 overflow-hidden min-w-[300px]"
+              className="group relative inline-flex items-center justify-center gap-4 bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 text-white px-16 py-6 rounded-3xl font-black text-2xl shadow-2xl hover:shadow-purple-500/30 transform hover:scale-110 transition-all duration-500 overflow-hidden min-w-[300px]"
             >
               {/* Animated Background */}
-              <div className="absolute inset-0 bg-gradient-to-r from-yellow-300 via-amber-300 to-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-700 via-blue-700 to-teal-700 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               
               {/* Shimmer Effect */}
               <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
               
               {/* Content */}
               <div className="relative flex items-center gap-4">
-                <div className="w-10 h-10 bg-gray-900/20 rounded-full flex items-center justify-center group-hover:rotate-12 transition-transform duration-300">
-                  <Search size={24} className="text-gray-900" />
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center group-hover:rotate-12 transition-transform duration-300">
+                  <Search size={24} className="text-white" />
                 </div>
                 <span className="relative">Book Services Now</span>
-                <div className="w-8 h-8 bg-gray-900/20 rounded-full flex items-center justify-center group-hover:translate-x-2 transition-transform duration-300">
-                  <ArrowRight size={20} className="text-gray-900" />
+                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center group-hover:translate-x-2 transition-transform duration-300">
+                  <ArrowRight size={20} className="text-white" />
                 </div>
               </div>
 
               {/* Pulse Ring */}
-              <div className="absolute inset-0 rounded-3xl border-2 border-yellow-400 scale-105 opacity-0 group-hover:scale-110 group-hover:opacity-50 transition-all duration-500"></div>
+              <div className="absolute inset-0 rounded-3xl border-2 border-purple-400 scale-105 opacity-0 group-hover:scale-110 group-hover:opacity-50 transition-all duration-500"></div>
             </Link>
 
             {/* Join as Professional - Secondary CTA */}
             <Link
               href="/login"
-              className="group relative inline-flex items-center justify-center gap-4 bg-gradient-to-r from-white via-gray-50 to-white text-gray-900 px-16 py-6 rounded-3xl font-black text-2xl border-4 border-yellow-400 shadow-2xl hover:shadow-yellow-400/30 transform hover:scale-110 transition-all duration-500 overflow-hidden min-w-[300px]"
+              className="group relative inline-flex items-center justify-center gap-4 bg-gradient-to-r from-white via-gray-50 to-white text-purple-700 px-16 py-6 rounded-3xl font-black text-2xl border-4 border-purple-500 shadow-2xl hover:shadow-purple-400/30 transform hover:scale-110 transition-all duration-500 overflow-hidden min-w-[300px]"
             >
               {/* Animated Background */}
-              <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/10 via-amber-400/10 to-yellow-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-400/10 via-teal-400/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               
               {/* Shimmer Effect */}
-              <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-yellow-400/30 to-transparent translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+              <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-purple-400/30 to-transparent translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
               
               {/* Content */}
               <div className="relative flex items-center gap-4">
-                <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center group-hover:rotate-12 transition-transform duration-300 shadow-lg">
-                  <Users size={24} className="text-gray-900" />
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-teal-400 rounded-full flex items-center justify-center group-hover:rotate-12 transition-transform duration-300 shadow-lg">
+                  <Users size={24} className="text-white" />
                 </div>
-                <span className="relative group-hover:text-yellow-800 transition-colors duration-300">Join as Professional</span>
-                <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center group-hover:translate-x-2 transition-transform duration-300 shadow-lg">
-                  <ArrowRight size={20} className="text-gray-900" />
+                <span className="relative group-hover:text-purple-800 transition-colors duration-300">Join as Professional</span>
+                <div className="w-8 h-8 bg-gradient-to-r from-teal-400 to-purple-400 rounded-full flex items-center justify-center group-hover:translate-x-2 transition-transform duration-300 shadow-lg">
+                  <ArrowRight size={20} className="text-white" />
                 </div>
               </div>
 
               {/* Pulse Ring */}
-              <div className="absolute inset-0 rounded-3xl border-2 border-yellow-500 scale-105 opacity-0 group-hover:scale-110 group-hover:opacity-70 transition-all duration-500"></div>
+              <div className="absolute inset-0 rounded-3xl border-2 border-purple-500 scale-105 opacity-0 group-hover:scale-110 group-hover:opacity-70 transition-all duration-500"></div>
               
               {/* Glow Effect */}
               <div className="absolute inset-0 rounded-3xl bg-yellow-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -355,10 +401,10 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="text-center">
+          <div className="text-center mt-16">
             <Link
               href="/search"
-              className="inline-flex items-center gap-3 bg-gradient-to-r from-yellow-400 to-amber-400 text-gray-900 px-8 py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+              className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 hover:from-purple-700 hover:via-blue-700 hover:to-teal-700 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
             >
               View All Services
               <ArrowRight size={20} />
@@ -367,78 +413,305 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why Choose Us Section */}
-      <section className="py-24 bg-gradient-to-br from-slate-900 to-gray-900 text-white relative overflow-hidden">
-        {/* Background Elements */}
-        <div className="absolute top-0 left-0 w-96 h-96 bg-yellow-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-amber-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
+      {/* Featured Services Section - Soft Light Gradient */}
+      <section className="py-32 bg-gradient-to-br from-purple-50/80 via-white to-blue-50/60 relative overflow-hidden">
+        {/* Subtle Background Decorative Elements */}
+        <div className="absolute top-20 right-10 w-80 h-80 bg-gradient-to-br from-purple-100/30 to-blue-100/25 rounded-full blur-3xl animate-pulse delay-300"></div>
+        <div className="absolute bottom-20 left-10 w-96 h-96 bg-gradient-to-br from-teal-100/25 to-purple-100/20 rounded-full blur-3xl animate-pulse delay-700"></div>
+        
+        <div className="max-w-8xl mx-auto px-6 sm:px-8 lg:px-12 relative z-10">
+          {/* Section Header */}
+          <div className="text-center mb-24">
+            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-100 via-blue-100 to-teal-100 text-purple-800 px-8 py-4 rounded-full text-sm font-bold uppercase tracking-wider mb-8 shadow-lg border border-purple-200/30">
+              <Star size={18} className="animate-pulse" />
+              Featured Services
+            </div>
+            <h2 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-purple-700 via-blue-600 to-teal-600 bg-clip-text text-transparent mb-8 leading-tight">
+              Popular Services
+            </h2>
+            <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed mb-16">
+              Discover our most popular professional services, trusted by thousands of customers
+            </p>
 
-        <div className="relative max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            {/* Category Pills - Enhanced Design */}
+            <div className="flex flex-wrap justify-center gap-4 mb-20 max-w-6xl mx-auto">
+              <button
+                onClick={() => handleCategorySelect("")}
+                className={`group relative px-10 py-5 rounded-3xl font-bold text-base transition-all duration-500 transform hover:scale-110 ${
+                  selectedCategory === "" 
+                  ? "bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 text-white shadow-2xl ring-4 ring-purple-300/50 scale-105" 
+                  : "bg-white/95 backdrop-blur-sm text-gray-700 border-2 border-gray-200/50 hover:bg-gradient-to-r hover:from-purple-50 hover:to-teal-50 hover:border-purple-300 hover:shadow-2xl shadow-lg"
+                }`}
+              >
+                <span className="relative z-10 flex items-center gap-3">
+                  <Sparkles size={20} className={selectedCategory === "" ? "animate-pulse text-yellow-200" : "text-purple-500"} />
+                  <span className="font-extrabold">All Categories</span>
+                </span>
+                {selectedCategory === "" && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-700 via-blue-700 to-teal-700 rounded-3xl blur opacity-40 group-hover:opacity-60 transition-opacity"></div>
+                )}
+              </button>
+              
+              <button
+                onClick={() => handleCategorySelect("cleaning")}
+                className={`group relative px-10 py-5 rounded-3xl font-bold text-base transition-all duration-500 transform hover:scale-110 flex items-center gap-4 ${
+                  selectedCategory === "cleaning" 
+                  ? "bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 text-white shadow-2xl ring-4 ring-purple-300/50 scale-105" 
+                  : "bg-white/95 backdrop-blur-sm text-gray-700 border-2 border-gray-200/50 hover:bg-gradient-to-r hover:from-purple-50 hover:to-teal-50 hover:border-purple-300 hover:shadow-2xl shadow-lg"
+                }`}
+              >
+                <span className="text-3xl group-hover:animate-bounce transition-transform">🏠</span>
+                <span className="relative z-10 font-extrabold">Home Cleaning</span>
+                {selectedCategory === "cleaning" && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-700 via-blue-700 to-teal-700 rounded-3xl blur opacity-40 group-hover:opacity-60 transition-opacity"></div>
+                )}
+              </button>
+              
+              <button
+                onClick={() => handleCategorySelect("beauty")}
+                className={`group relative px-10 py-5 rounded-3xl font-bold text-base transition-all duration-500 transform hover:scale-110 flex items-center gap-4 ${
+                  selectedCategory === "beauty" 
+                  ? "bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 text-white shadow-2xl ring-4 ring-purple-300/50 scale-105" 
+                  : "bg-white/95 backdrop-blur-sm text-gray-700 border-2 border-gray-200/50 hover:bg-gradient-to-r hover:from-purple-50 hover:to-teal-50 hover:border-purple-300 hover:shadow-2xl shadow-lg"
+                }`}
+              >
+                <span className="text-3xl group-hover:animate-bounce transition-transform">💄</span>
+                <span className="relative z-10 font-extrabold">Beauty & Spa</span>
+                {selectedCategory === "beauty" && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-700 via-blue-700 to-teal-700 rounded-3xl blur opacity-40 group-hover:opacity-60 transition-opacity"></div>
+                )}
+              </button>
+              
+              <button
+                onClick={() => handleCategorySelect("repairs")}
+                className={`group relative px-10 py-5 rounded-3xl font-bold text-base transition-all duration-500 transform hover:scale-110 flex items-center gap-4 ${
+                  selectedCategory === "repairs" 
+                  ? "bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 text-white shadow-2xl ring-4 ring-purple-300/50 scale-105" 
+                  : "bg-white/95 backdrop-blur-sm text-gray-700 border-2 border-gray-200/50 hover:bg-gradient-to-r hover:from-purple-50 hover:to-teal-50 hover:border-purple-300 hover:shadow-2xl shadow-lg"
+                }`}
+              >
+                <span className="text-3xl group-hover:animate-bounce transition-transform">🔧</span>
+                <span className="relative z-10 font-extrabold">Repairs & Maintenance</span>
+                {selectedCategory === "repairs" && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-700 via-blue-700 to-teal-700 rounded-3xl blur opacity-40 group-hover:opacity-60 transition-opacity"></div>
+                )}
+              </button>
+              
+              <button
+                onClick={() => handleCategorySelect("appliance")}
+                className={`group relative px-10 py-5 rounded-3xl font-bold text-base transition-all duration-500 transform hover:scale-110 flex items-center gap-4 ${
+                  selectedCategory === "appliance" 
+                  ? "bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 text-white shadow-2xl ring-4 ring-purple-300/50 scale-105" 
+                  : "bg-white/95 backdrop-blur-sm text-gray-700 border-2 border-gray-200/50 hover:bg-gradient-to-r hover:from-purple-50 hover:to-teal-50 hover:border-purple-300 hover:shadow-2xl shadow-lg"
+                }`}
+              >
+                <span className="text-3xl group-hover:animate-bounce transition-transform">🔌</span>
+                <span className="relative z-10 font-extrabold">Appliance Repair</span>
+                {selectedCategory === "appliance" && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-700 via-blue-700 to-teal-700 rounded-3xl blur opacity-40 group-hover:opacity-60 transition-opacity"></div>
+                )}
+              </button>
+              
+              <button
+                onClick={() => handleCategorySelect("pest")}
+                className={`group relative px-10 py-5 rounded-3xl font-bold text-base transition-all duration-500 transform hover:scale-110 flex items-center gap-4 ${
+                  selectedCategory === "pest" 
+                  ? "bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 text-white shadow-2xl ring-4 ring-purple-300/50 scale-105" 
+                  : "bg-white/95 backdrop-blur-sm text-gray-700 border-2 border-gray-200/50 hover:bg-gradient-to-r hover:from-purple-50 hover:to-teal-50 hover:border-purple-300 hover:shadow-2xl shadow-lg"
+                }`}
+              >
+                <span className="text-3xl group-hover:animate-bounce transition-transform">🐛</span>
+                <span className="relative z-10 font-extrabold">Pest Control</span>
+                {selectedCategory === "pest" && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-700 via-blue-700 to-teal-700 rounded-3xl blur opacity-40 group-hover:opacity-60 transition-opacity"></div>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Filtered Results Section - Enhanced Design */}
+          {showFiltered && (
+            <div className="mb-24">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-16 gap-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                  <h3 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-700 via-blue-600 to-teal-600 bg-clip-text text-transparent leading-tight">
+                    {selectedCategory ? 
+                      `${serviceCategories.find(cat => cat.id === selectedCategory)?.name || 'Category'} Services` : 
+                      'All Services'
+                    }
+                  </h3>
+                  <span className="bg-gradient-to-r from-purple-100 via-blue-100 to-teal-100 text-purple-800 px-6 py-3 rounded-full text-sm font-bold shadow-lg border border-purple-200/30">
+                    {filteredServices.length} services found
+                  </span>
+                </div>
+                <button
+                  onClick={() => setShowFiltered(false)}
+                  className="text-gray-500 hover:text-gray-700 p-3 hover:bg-gray-100 rounded-xl transition-colors shadow-md border border-gray-200"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              {/* Services Grid - Enhanced Layout */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-10">
+                {filteredServices.slice(0, 12).map((service) => (
+                  <ServiceCard key={service.id} service={service} />
+                ))}
+              </div>
+
+              {filteredServices.length > 12 && (
+                <div className="text-center mt-16">
+                  <Link
+                    href={`/search${selectedCategory ? `?category=${selectedCategory}` : ''}`}
+                    className="inline-flex items-center gap-3 text-purple-600 hover:text-purple-700 font-bold text-xl bg-white hover:bg-purple-50 px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-2 border-purple-200 hover:border-purple-300"
+                  >
+                    View all {filteredServices.length} services
+                    <ArrowRight size={20} />
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Popular Services Grid - Enhanced Design */}
+          {!showFiltered && (
+            <div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-10 mb-24">
+                {services
+                  .filter(service => service.popular)
+                  .slice(0, 8)
+                  .map((service) => (
+                    <ServiceCard key={service.id} service={service} />
+                  ))}
+              </div>
+
+          {/* Enhanced CTA Section */}
+          <div className="text-center mt-16">
+            <div className="inline-block">
+              <Link
+                href="/search"
+                className="group relative inline-flex items-center justify-center gap-4 bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 hover:from-purple-700 hover:via-blue-700 hover:to-teal-700 text-white px-12 py-5 rounded-3xl font-bold text-xl shadow-2xl hover:shadow-purple-500/25 transform hover:scale-110 transition-all duration-500 overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-700 via-blue-700 to-teal-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <span className="relative z-10">Explore All Services</span>
+                <ArrowRight size={24} className="relative z-10 group-hover:translate-x-2 transition-transform duration-300" />
+                {/* Animated shimmer effect */}
+                <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+              </Link>
+            </div>
+            <p className="text-gray-600 mt-6 text-lg max-w-2xl mx-auto">
+              Browse through our comprehensive service catalog and find the perfect solution for your needs
+            </p>
+          </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Why Choose Us Section - Clean White Background */}
+      <section className="py-32 bg-white text-gray-800 relative overflow-hidden">
+        {/* Subtle Decorative Elements */}
+        <div className="absolute top-0 left-0 w-72 h-72 bg-gradient-to-br from-purple-50/60 to-blue-50/40 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-br from-teal-50/50 to-purple-50/40 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-blue-50/40 to-teal-50/30 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-500"></div>
+
+        <div className="relative max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 z-10">
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-200/60 via-blue-200/60 to-teal-200/60 text-purple-800 px-8 py-4 rounded-full text-sm font-bold uppercase tracking-wider mb-8 shadow-lg border border-purple-300/30">
+              <Shield size={18} className="animate-pulse" />
+              Why Choose Us
+            </div>
+            <h2 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-purple-700 via-blue-600 to-teal-600 bg-clip-text text-transparent mb-8 leading-tight">
               Why Choose LOCAL SERVICING?
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl text-gray-700 max-w-4xl mx-auto leading-relaxed">
               We're not just another service platform. We're your trusted partner for all home improvement needs.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center group">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-yellow-400 to-amber-400 rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Shield size={40} className="text-gray-900" />
+            {/* Verified Experts */}
+            <div className="group relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 text-center hover:bg-white transition-all duration-500 hover:shadow-2xl hover:shadow-purple-200/50 border border-purple-100/50 hover:border-purple-200 hover:-translate-y-2">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 via-blue-50/50 to-teal-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
+              <div className="relative z-10">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-500 via-blue-500 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-500 shadow-xl">
+                  <Shield size={40} className="text-white" />
+                </div>
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-700 to-teal-600 bg-clip-text text-transparent mb-4 group-hover:from-purple-600 group-hover:to-teal-500 transition-all duration-300">
+                  Verified Experts
+                </h3>
+                <p className="text-gray-700 leading-relaxed">
+                  Every professional is thoroughly vetted, licensed, and insured for your peace of mind.
+                </p>
               </div>
-              <h3 className="text-xl font-bold mb-4">Verified Experts</h3>
-              <p className="text-gray-300 leading-relaxed">
-                Every professional is thoroughly vetted, licensed, and insured for your peace of mind.
-              </p>
             </div>
 
-            <div className="text-center group">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-yellow-400 to-amber-400 rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Clock size={40} className="text-gray-900" />
+            {/* 24/7 Support */}
+            <div className="group relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 text-center hover:bg-white transition-all duration-500 hover:shadow-2xl hover:shadow-blue-200/50 border border-blue-100/50 hover:border-blue-200 hover:-translate-y-2">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-purple-50/50 to-teal-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
+              <div className="relative z-10">
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-500 shadow-xl">
+                  <Clock size={40} className="text-white" />
+                </div>
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-700 to-purple-600 bg-clip-text text-transparent mb-4 group-hover:from-blue-600 group-hover:to-purple-500 transition-all duration-300">
+                  24/7 Support
+                </h3>
+                <p className="text-gray-700 leading-relaxed">
+                  Round-the-clock customer support to assist you whenever you need help.
+                </p>
               </div>
-              <h3 className="text-xl font-bold mb-4">24/7 Support</h3>
-              <p className="text-gray-300 leading-relaxed">
-                Round-the-clock customer support to assist you whenever you need help.
-              </p>
             </div>
 
-            <div className="text-center group">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-yellow-400 to-amber-400 rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Award size={40} className="text-gray-900" />
+            {/* Quality Guaranteed */}
+            <div className="group relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 text-center hover:bg-white transition-all duration-500 hover:shadow-2xl hover:shadow-teal-200/50 border border-teal-100/50 hover:border-teal-200 hover:-translate-y-2">
+              <div className="absolute inset-0 bg-gradient-to-br from-teal-50/50 via-blue-50/50 to-purple-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
+              <div className="relative z-10">
+                <div className="w-20 h-20 bg-gradient-to-br from-teal-500 via-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-500 shadow-xl">
+                  <Award size={40} className="text-white" />
+                </div>
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-teal-700 to-blue-600 bg-clip-text text-transparent mb-4 group-hover:from-teal-600 group-hover:to-blue-500 transition-all duration-300">
+                  Quality Guaranteed
+                </h3>
+                <p className="text-gray-700 leading-relaxed">
+                  100% satisfaction guarantee or your money back. We stand behind our work.
+                </p>
               </div>
-              <h3 className="text-xl font-bold mb-4">Quality Guaranteed</h3>
-              <p className="text-gray-300 leading-relaxed">
-                100% satisfaction guarantee or your money back. We stand behind our work.
-              </p>
             </div>
 
-            <div className="text-center group">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-yellow-400 to-amber-400 rounded-2xl mb-6 group-hover:scale-110 transition-transform duration-300">
-                <TrendingUp size={40} className="text-gray-900" />
+            {/* Best Prices */}
+            <div className="group relative bg-white/80 backdrop-blur-sm rounded-3xl p-8 text-center hover:bg-white transition-all duration-500 hover:shadow-2xl hover:shadow-purple-200/50 border border-purple-100/50 hover:border-purple-200 hover:-translate-y-2">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-50/50 via-teal-50/50 to-blue-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
+              <div className="relative z-10">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-500 via-teal-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-500 shadow-xl">
+                  <TrendingUp size={40} className="text-white" />
+                </div>
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-700 to-teal-600 bg-clip-text text-transparent mb-4 group-hover:from-purple-600 group-hover:to-teal-500 transition-all duration-300">
+                  Best Prices
+                </h3>
+                <p className="text-gray-700 leading-relaxed">
+                  Competitive pricing with transparent quotes and no hidden fees ever.
+                </p>
               </div>
-              <h3 className="text-xl font-bold mb-4">Best Prices</h3>
-              <p className="text-gray-300 leading-relaxed">
-                Competitive pricing with transparent quotes and no hidden fees ever.
-              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Premium Testimonials Section */}
-      <section className="py-32 bg-gradient-to-br from-yellow-50 via-white to-amber-50">
+      {/* Premium Testimonials Section - Warm Gradient Background */}
+      <section className="py-32 bg-gradient-to-br from-teal-50 via-blue-50 to-purple-100/60 relative overflow-hidden">
+        {/* Background Decorative Elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-teal-200/30 to-blue-200/25 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-br from-purple-200/25 to-teal-200/20 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-1000"></div>
         <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
           <div className="text-center mb-24">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-amber-400 text-gray-900 px-8 py-3 rounded-full text-sm font-bold uppercase tracking-wider mb-8">
-              <HeartHandshake size={16} />
+            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-teal-200/80 via-blue-200/80 to-purple-200/80 text-teal-800 px-8 py-3 rounded-full text-sm font-bold uppercase tracking-wider mb-8 shadow-lg border border-teal-300/40">
+              <HeartHandshake size={18} className="animate-pulse" />
               Customer Stories
             </div>
-            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-8">
+            <h2 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-teal-700 via-blue-600 to-purple-700 bg-clip-text text-transparent mb-8 leading-tight">
               What Our Clients Say
             </h2>
-            <p className="text-2xl text-gray-600 max-w-6xl mx-auto text-center">
+            <p className="text-xl md:text-2xl text-gray-700 max-w-6xl mx-auto text-center leading-relaxed">
               Don't just take our word for it. Here's what our satisfied customers have to say about our premium services.
             </p>
           </div>
@@ -447,18 +720,18 @@ export default function Home() {
           <div className="flex justify-center">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 max-w-6xl">
               {/* Advanced Modern Testimonial Card 1 */}
-              <div className="group relative bg-white rounded-3xl shadow-2xl border border-yellow-100/50 p-12 hover:shadow-yellow-400/20 hover:shadow-3xl transition-all duration-500 hover:scale-105 overflow-hidden backdrop-blur-sm">
+              <div className="group relative bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-teal-100/60 p-12 hover:shadow-2xl hover:shadow-teal-200/30 transition-all duration-500 hover:scale-105 overflow-hidden">
                 {/* Background Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-50/30 via-white to-amber-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-teal-50/40 via-white to-blue-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
                 
                 {/* Shimmer Effect */}
-                <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-yellow-400/10 to-transparent translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+                <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-teal-400/10 to-transparent translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
                 
                 {/* Content */}
                 <div className="relative text-center">
                   {/* Stars */}
                   <div className="flex justify-center items-center mb-8">
-                    <div className="flex text-yellow-400">
+                    <div className="flex text-teal-500">
                       {[...Array(5)].map((_, i) => (
                         <Star key={i} size={28} fill="currentColor" className="mx-1" />
                       ))}
@@ -472,7 +745,7 @@ export default function Home() {
                   
                   {/* Customer Info */}
                   <div className="text-center">
-                    <div className="w-20 h-20 bg-gradient-to-r from-yellow-400 to-amber-400 rounded-full flex items-center justify-center text-gray-900 font-bold text-xl mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-20 h-20 bg-gradient-to-r from-teal-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
                       SM
                     </div>
                     <h4 className="font-bold text-gray-900 text-xl mb-1">Sarah Martinez</h4>
@@ -482,18 +755,18 @@ export default function Home() {
               </div>
 
               {/* Advanced Modern Testimonial Card 2 */}
-              <div className="group relative bg-white rounded-3xl shadow-2xl border border-yellow-100/50 p-12 hover:shadow-yellow-400/20 hover:shadow-3xl transition-all duration-500 hover:scale-105 overflow-hidden backdrop-blur-sm">
+              <div className="group relative bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-blue-100/60 p-12 hover:shadow-2xl hover:shadow-blue-200/30 transition-all duration-500 hover:scale-105 overflow-hidden">
                 {/* Background Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-50/30 via-white to-amber-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 via-white to-purple-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl"></div>
                 
                 {/* Shimmer Effect */}
-                <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-yellow-400/10 to-transparent translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+                <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-blue-400/10 to-transparent translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
                 
                 {/* Content */}
                 <div className="relative text-center">
                   {/* Stars */}
                   <div className="flex justify-center items-center mb-8">
-                    <div className="flex text-yellow-400">
+                    <div className="flex text-blue-500">
                       {[...Array(5)].map((_, i) => (
                         <Star key={i} size={28} fill="currentColor" className="mx-1" />
                       ))}
@@ -507,7 +780,7 @@ export default function Home() {
                   
                   {/* Customer Info */}
                   <div className="text-center">
-                    <div className="w-20 h-20 bg-gradient-to-r from-yellow-400 to-amber-400 rounded-full flex items-center justify-center text-gray-900 font-bold text-xl mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
                       DJ
                     </div>
                     <h4 className="font-bold text-gray-900 text-xl mb-1">David Johnson</h4>
@@ -576,12 +849,12 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 max-w-6xl">
               
               {/* Professional Card 1 - Rajesh Kumar */}
-              <div className="group relative bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 hover:shadow-yellow-400/20 hover:shadow-3xl transition-all duration-500 hover:scale-105 overflow-hidden backdrop-blur-sm">
+              <div className="group relative bg-white rounded-3xl shadow-2xl border border-blue-100 p-8 hover:shadow-blue-400/20 hover:shadow-3xl transition-all duration-500 hover:scale-105 overflow-hidden backdrop-blur-sm">
                 {/* Background Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-50/20 via-white to-amber-50/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 via-white to-purple-50/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 
                 {/* Shimmer Effect */}
-                <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-yellow-400/10 to-transparent translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
+                <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-blue-400/10 to-transparent translate-x-[-100%] group-hover:translate-x-[200%] transition-transform duration-1000"></div>
                 
                 {/* Content */}
                 <div className="relative">
@@ -589,7 +862,7 @@ export default function Home() {
                   <div className="flex justify-between items-start mb-6">
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-1">
-                        <Star size={20} className="text-yellow-400 fill-current" />
+                        <Star size={20} className="text-blue-500 fill-current" />
                         <span className="text-xl font-bold text-gray-900">4.8</span>
                       </div>
                     </div>
@@ -601,7 +874,7 @@ export default function Home() {
 
                   {/* Professional Avatar */}
                   <div className="text-center mb-6">
-                    <div className="w-24 h-24 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4 shadow-xl group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4 shadow-xl group-hover:scale-110 transition-transform duration-300">
                       RK
                     </div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-1">Rajesh Kumar</h3>
@@ -638,10 +911,10 @@ export default function Home() {
                   {/* Price & Action */}
                   <div className="flex items-center justify-between mb-6">
                     <div className="text-center">
-                      <span className="text-3xl font-bold text-yellow-500">₹500</span>
+                      <span className="text-3xl font-bold text-blue-500">₹500</span>
                       <p className="text-sm text-gray-500">Starting price</p>
                     </div>
-                    <button className="bg-gradient-to-r from-yellow-400 to-amber-400 text-gray-900 px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all duration-300 hover:scale-105">
+                    <button className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all duration-300 hover:scale-105">
                       View Profile
                     </button>
                   </div>
@@ -674,11 +947,11 @@ export default function Home() {
 
                   {/* Professional Avatar */}
                   <div className="text-center mb-6">
-                    <div className="w-24 h-24 bg-gradient-to-r from-yellow-400 to-amber-400 rounded-full flex items-center justify-center text-gray-900 font-bold text-2xl mx-auto mb-4 shadow-xl group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-24 h-24 bg-gradient-to-r from-teal-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4 shadow-xl group-hover:scale-110 transition-transform duration-300">
                       AS
                     </div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-1">Amit Sharma</h3>
-                    <p className="text-lg text-yellow-600 font-semibold">Electrician</p>
+                    <p className="text-lg text-teal-600 font-semibold">Electrician</p>
                   </div>
 
                   {/* Details Grid */}
@@ -711,10 +984,10 @@ export default function Home() {
                   {/* Price & Action */}
                   <div className="flex items-center justify-between mb-6">
                     <div className="text-center">
-                      <span className="text-3xl font-bold text-yellow-500">₹600</span>
+                      <span className="text-3xl font-bold text-teal-500">₹600</span>
                       <p className="text-sm text-gray-500">Starting price</p>
                     </div>
-                    <button className="bg-gradient-to-r from-yellow-400 to-amber-400 text-gray-900 px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all duration-300 hover:scale-105">
+                    <button className="bg-gradient-to-r from-teal-500 to-blue-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all duration-300 hover:scale-105">
                       View Profile
                     </button>
                   </div>

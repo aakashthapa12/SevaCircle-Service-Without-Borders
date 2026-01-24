@@ -28,9 +28,9 @@ export const Footer = () => {
   }
 
   return (
-    <footer className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-gray-100 mt-16 relative overflow-hidden">
+    <footer className="bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 text-slate-100 mt-16 relative overflow-hidden">
       {/* Decorative gradient */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 via-pink-600 to-red-500"></div>
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-blue-500 to-teal-500"></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Company Info */}
@@ -39,7 +39,7 @@ export const Footer = () => {
               <span className="text-3xl">🏠</span>
               <span>LocalHelp</span>
             </div>
-            <p className="text-gray-400 text-sm">
+            <p className="text-slate-300 text-sm">
               Skilled workers and local services at your fingertips
             </p>
           </div>
@@ -47,19 +47,19 @@ export const Footer = () => {
           {/* Links */}
           <div>
             <h3 className="font-bold mb-4">About Us</h3>
-            <ul className="space-y-2 text-sm text-gray-400">
+            <ul className="space-y-2 text-sm text-slate-300">
               <li>
-                <a href="#" className="hover:text-white transition">
+                <a href="#" className="hover:text-purple-400 transition">
                   Contact Us
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition">
+                <a href="#" className="hover:text-teal-400 transition">
                   About Us
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition">
+                <a href="#" className="hover:text-purple-400 transition">
                   Privacy Policy
                 </a>
               </li>
@@ -69,7 +69,7 @@ export const Footer = () => {
           {/* Contact */}
           <div>
             <h3 className="font-bold mb-4">Contact Us</h3>
-            <div className="space-y-3 text-sm text-gray-400">
+            <div className="space-y-3 text-sm text-slate-300">
               <div className="flex items-center gap-2">
                 <Mail size={16} />
                 <span>contact@localservices.com</span>
