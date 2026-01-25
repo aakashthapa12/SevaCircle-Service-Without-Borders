@@ -1,376 +1,464 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { FormEvent, ReactNode } from "react";
+import type { FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Mail, CheckCircle2, XCircle, Circle } from "lucide-react";
-
-const GoogleBrandIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
-    <path
-      fill="#EA4335"
-      d="M24 9.5c3.54 0 6.7 1.22 9.2 3.6l6.9-6.9C35.9 2.4 30.4 0 24 0 14.6 0 6.5 5.4 2.6 13.3l8.1 6.3C12.6 13.1 17.8 9.5 24 9.5z"
-    />
-    <path
-      fill="#4285F4"
-      d="M46.1 24.5c0-1.6-.1-2.8-.4-4.2H24v8h12.5c-.3 2-1.8 5-5.2 7l8.1 6.3c4.8-4.4 7.7-10.9 7.7-17.1z"
-    />
-    <path
-      fill="#FBBC05"
-      d="M10.7 28.4c-.5-1.5-.8-3.1-.8-4.9s.3-3.4.8-4.9l-8.1-6.3C1 15.6 0 19.1 0 23.5c0 4.4 1 7.9 2.6 11.2l8.1-6.3z"
-    />
-    <path
-      fill="#34A853"
-      d="M24 48c6.4 0 11.8-2.1 15.7-5.7l-8.1-6.3c-2.2 1.5-5 2.5-7.6 2.5-6.2 0-11.4-3.6-13.3-8.9l-8.1 6.3C6.5 42.6 14.6 48 24 48z"
-    />
-  </svg>
-);
-
-const FacebookIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true">
-    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-  </svg>
-);
-
-const AppleIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-    <path d="M16.7 13.3c0 2.7 2.4 3.6 2.4 3.6s-1.9 5.5-4.6 5.5c-1.3 0-2.3-.8-3.6-.8s-2.4.8-3.6.8C4.6 22.4 3 17.4 3 14.8c0-3.6 2.4-5.5 4.7-5.5 1.2 0 2.4.8 3.2.8.8 0 2.1-.9 3.6-.9.6 0 2.7.1 4 2-3.5 1.9-2.8 5.9-2.8 6.1z" />
-    <path d="M14.9 3.2c.9-1.1 1.6-2.6 1.4-4.2-1.3.1-2.9.9-3.8 2-.8.9-1.6 2.5-1.4 4 1.5.1 2.9-.7 3.8-1.8z" />
-  </svg>
-);
-
-function PasswordStrengthIndicator({ password }: { password: string }) {
-  const strength = useMemo(() => {
-    if (!password) return { score: 0, label: "", color: "" };
-    
-    let score = 0;
-    if (password.length >= 8) score++;
-    if (password.length >= 12) score++;
-    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
-    if (/\d/.test(password)) score++;
-    if (/[^a-zA-Z0-9]/.test(password)) score++;
-
-    if (score <= 2) return { score, label: "Weak", color: "bg-red-500" };
-    if (score <= 3) return { score, label: "Medium", color: "bg-yellow-500" };
-    return { score, label: "Strong", color: "bg-green-500" };
-  }, [password]);
-
-  const requirements = [
-    { met: password.length >= 8, label: "At least 8 characters" },
-    { met: /[a-z]/.test(password) && /[A-Z]/.test(password), label: "Uppercase & lowercase" },
-    { met: /\d/.test(password), label: "Contains a number" },
-    { met: /[^a-zA-Z0-9]/.test(password), label: "Contains a special character" },
-  ];
-
-  if (!password) return null;
-
-  return (
-    <div className="space-y-2 animate-slide-in">
-      <div className="flex items-center gap-2">
-        <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-          <div
-            className={`h-full transition-all duration-300 ${strength.color}`}
-            style={{ width: `${(strength.score / 5) * 100}%` }}
-          />
-        </div>
-        <span className="text-xs font-medium text-gray-600">{strength.label}</span>
-      </div>
-      <div className="space-y-1">
-        {requirements.map((req, idx) => (
-          <div key={idx} className="flex items-center gap-1.5 text-xs">
-            {req.met ? (
-              <CheckCircle2 size={14} className="text-green-500 flex-shrink-0" />
-            ) : (
-              <Circle size={14} className="text-gray-300 flex-shrink-0" />
-            )}
-            <span className={req.met ? "text-green-600" : "text-gray-500"}>{req.label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function Field({
-  label,
-  type,
-  value,
-  onChange,
-  placeholder,
-  rightIcon,
-  rightAction,
-  inputId,
-  onBlur,
-  error,
-}: {
-  label: string;
-  type: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  rightIcon?: ReactNode;
-  rightAction?: ReactNode;
-  inputId: string;
-  onBlur?: () => void;
-  error?: string;
-}) {
-  const describedBy = error ? `${inputId}-error` : undefined;
-
-  return (
-    <div className="relative">
-      <label className="absolute -top-2.5 left-4 px-1 text-xs font-medium text-blue-600 bg-white z-10">
-        {label}
-      </label>
-      <div
-        className={
-          "relative rounded-lg bg-white shadow-sm transition-all duration-300 focus-within:ring-2 focus-within:shadow-lg " +
-          (error
-            ? "border-2 border-red-300 focus-within:border-red-500 focus-within:ring-red-500/20 shake"
-            : "border border-gray-200 focus-within:border-blue-500 focus-within:ring-blue-500/30 focus-within:shadow-blue-200/50")
-        }
-      >
-        <input
-          id={inputId}
-          type={type}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onBlur={onBlur}
-          aria-invalid={Boolean(error) || undefined}
-          aria-describedby={describedBy}
-          className="w-full h-14 px-4 pr-12 bg-transparent outline-none text-gray-900 placeholder:text-gray-400 transition-all duration-200"
-          placeholder={placeholder}
-          required
-        />
-        {rightIcon && (
-          <span className="absolute right-12 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-            {rightIcon}
-          </span>
-        )}
-        {rightAction && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2">{rightAction}</span>
-        )}
-      </div>
-      {error && (
-        <p id={describedBy} className="mt-2 text-xs text-red-600 animate-slide-in flex items-center gap-1">
-          <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-          </svg>
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
+import { Eye, EyeOff, Mail, User, Briefcase, Lock, UserPlus, Phone } from "lucide-react";
 
 export default function SignupPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+    role: "user" as "user" | "service_provider",
+    agreeToTerms: false,
+  });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState<"user" | "worker">("user");
-  const [agreeTerms, setAgreeTerms] = useState(false);
-
-  const [touched, setTouched] = useState({ email: false, password: false });
+  const [touched, setTouched] = useState({
+    fullName: false,
+    email: false,
+    phone: false,
+    password: false,
+    confirmPassword: false,
+  });
 
   const errors = useMemo(() => {
-    const next = { email: "", password: "" };
-    const emailValue = email.trim();
-    if (!emailValue) next.email = "Email is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)) next.email = "Enter a valid email";
+    const validationErrors = {
+      fullName: "",
+      email: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
+      agreeToTerms: "",
+    };
 
-    if (!password) next.password = "Password is required";
-    else if (password.length < 8) next.password = "Password must be at least 8 characters";
+    if (touched.fullName && !formData.fullName.trim()) {
+      validationErrors.fullName = "Full name is required";
+    }
 
-    return next;
-  }, [email, password]);
+    if (touched.email) {
+      if (!formData.email.trim()) {
+        validationErrors.email = "Email is required";
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        validationErrors.email = "Please enter a valid email address";
+      }
+    }
+
+    if (touched.phone && !formData.phone.trim()) {
+      validationErrors.phone = "Phone number is required";
+    }
+
+    if (touched.password) {
+      if (!formData.password) {
+        validationErrors.password = "Password is required";
+      } else if (formData.password.length < 8) {
+        validationErrors.password = "Password must be at least 8 characters";
+      } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+        validationErrors.password = "Password must contain uppercase, lowercase, and number";
+      }
+    }
+
+    if (touched.confirmPassword) {
+      if (!formData.confirmPassword) {
+        validationErrors.confirmPassword = "Please confirm your password";
+      } else if (formData.password !== formData.confirmPassword) {
+        validationErrors.confirmPassword = "Passwords do not match";
+      }
+    }
+
+    if (!formData.agreeToTerms) {
+      validationErrors.agreeToTerms = "You must agree to the terms and conditions";
+    }
+
+    return validationErrors;
+  }, [formData, touched]);
+
+  const isFormValid = Object.values(errors).every(error => !error) && 
+    formData.fullName && formData.email && formData.phone && formData.password && 
+    formData.confirmPassword && formData.agreeToTerms;
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-
-    setTouched({ email: true, password: true });
-    if (errors.email || errors.password || !agreeTerms) return;
-
+    
+    setTouched({
+      fullName: true,
+      email: true,
+      phone: true,
+      password: true,
+      confirmPassword: true,
+    });
+    
+    if (!isFormValid) return;
+    
     setLoading(true);
+    
     try {
-      // TODO: call backend signup API based on role
-      await new Promise((r) => setTimeout(r, 700));
-      router.push("/login");
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("userRole", formData.role);
+      localStorage.setItem("userEmail", formData.email);
+      localStorage.setItem("userName", formData.fullName);
+      
+      window.dispatchEvent(new Event("storage"));
+      
+      if (formData.role === "service_provider") {
+        router.push("/worker-profile");
+      } else {
+        router.push("/search");
+      }
+    } catch (error) {
+      console.error("Signup error:", error);
     } finally {
       setLoading(false);
     }
   };
 
+  const updateFormData = (field: keyof typeof formData, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const roles = [
+    {
+      id: "user" as const,
+      label: "Customer",
+      description: "Find and book services",
+      icon: User,
+      color: "from-blue-500 to-blue-600",
+    },
+    {
+      id: "service_provider" as const,
+      label: "Service Provider",
+      description: "Offer your services",
+      icon: Briefcase,
+      color: "from-green-500 to-green-600",
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated background blobs */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-10 right-20 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl animate-blob" />
-        <div className="absolute bottom-20 left-10 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000" />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-teal-50 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-20 left-10 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl animate-pulse" />
+        <div className="absolute top-40 right-10 w-96 h-96 bg-teal-400 rounded-full mix-blend-multiply filter blur-xl animate-pulse" style={{animationDelay: "2s"}} />
+        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-xl animate-pulse" style={{animationDelay: "4s"}} />
       </div>
 
-      <div className="w-full max-w-sm relative z-10 animate-fade-in">
+      <div className="w-full max-w-lg relative z-10">
         <div className="text-center mb-8">
-          <p className="text-sm text-gray-600 font-medium">Start your journey</p>
-          <h1 className="mt-2 text-3xl font-extrabold text-gray-900">Sign Up to InsideBox</h1>
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl mb-4 shadow-lg">
+            <UserPlus className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
+          <p className="text-gray-600">Join our platform and get started today</p>
         </div>
 
-        {/* Glassmorphism card */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 p-8 transition-all duration-300 hover:shadow-purple-200/50">
-          {/* Role selector */}
-          <div className="mb-6">
-            <div className="grid grid-cols-2 gap-2 rounded-lg bg-gradient-to-r from-gray-100 to-gray-50 p-1">
-              <button
-                type="button"
-                onClick={() => setRole("user")}
-                className={`rounded-md py-2.5 text-sm font-semibold transition-all duration-200 ${
-                  role === "user"
-                    ? "bg-white text-blue-600 shadow-md scale-105"
-                    : "text-gray-600 hover:bg-white/50 hover:scale-102"
-                }`}
-              >
-                User
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole("worker")}
-                className={`rounded-md py-2.5 text-sm font-semibold transition-all duration-200 ${
-                  role === "worker"
-                    ? "bg-white text-blue-600 shadow-md scale-105"
-                    : "text-gray-600 hover:bg-white/50 hover:scale-102"
-                }`}
-              >
-                Worker
-              </button>
-            </div>
-          </div>
-
-          <form onSubmit={onSubmit} className="space-y-5">
-            <div className="space-y-6">
-              <Field
-                inputId="email"
-                label="E-mail"
-                type="email"
-                value={email}
-                onChange={setEmail}
-                placeholder="example@email.com"
-                rightIcon={<Mail size={18} />}
-                onBlur={() => setTouched((t) => ({ ...t, email: true }))}
-                error={touched.email ? errors.email : ""}
-              />
-
-              <div className="space-y-3">
-                <Field
-                  inputId="password"
-                  label="Password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={setPassword}
-                  placeholder="••••••••"
-                  onBlur={() => setTouched((t) => ({ ...t, password: true }))}
-                  error={touched.password ? errors.password : ""}
-                  rightAction={
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 p-8">
+          <form onSubmit={onSubmit} className="space-y-6">
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-gray-700">
+                Register as <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {roles.map((roleOption) => {
+                  const Icon = roleOption.icon;
+                  const isSelected = formData.role === roleOption.id;
+                  
+                  return (
                     <button
+                      key={roleOption.id}
                       type="button"
-                      onClick={() => setShowPassword((s) => !s)}
-                      className="p-2 text-gray-400 hover:text-gray-700 transition-colors duration-200"
-                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      onClick={() => updateFormData("role", roleOption.id)}
+                      className={`relative p-4 rounded-xl border-2 transition-all duration-300 text-left
+                        ${
+                          isSelected
+                            ? "border-blue-500 bg-blue-50 shadow-md scale-105"
+                            : "border-gray-200 bg-white/80 hover:border-gray-300 hover:shadow-sm"
+                        }
+                      `}
                     >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-10 h-10 rounded-lg bg-gradient-to-r ${roleOption.color} 
+                            flex items-center justify-center text-white shadow-sm
+                          `}
+                        >
+                          <Icon size={20} />
+                        </div>
+                        <div>
+                          <div className={`font-semibold text-sm ${
+                            isSelected ? "text-blue-700" : "text-gray-900"
+                          }`}>
+                            {roleOption.label}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-0.5">
+                            {roleOption.description}
+                          </div>
+                        </div>
+                      </div>
+                      {isSelected && (
+                        <div className="absolute top-2 right-2 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                      )}
                     </button>
-                  }
-                />
-                <PasswordStrengthIndicator password={password} />
+                  );
+                })}
               </div>
             </div>
 
-            {/* Terms checkbox */}
-            <label className="flex items-start gap-2 cursor-pointer group">
+            <div className="space-y-2">
+              <label htmlFor="fullName" className="block text-sm font-semibold text-gray-700">
+                Full Name <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <User size={20} />
+                </div>
+                <input
+                  id="fullName"
+                  type="text"
+                  value={formData.fullName}
+                  onChange={(e) => updateFormData("fullName", e.target.value)}
+                  onBlur={() => setTouched(prev => ({ ...prev, fullName: true }))}
+                  placeholder="John Doe"
+                  required
+                  className={`w-full h-12 pl-10 pr-4 border border-gray-300 rounded-xl bg-white/90 backdrop-blur-sm
+                    text-gray-900 placeholder-gray-500 text-base
+                    focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none
+                    transition-all duration-300 hover:border-gray-400
+                    ${errors.fullName ? "border-red-400 focus:border-red-500 focus:ring-red-200" : ""}
+                  `}
+                />
+              </div>
+              {errors.fullName && (
+                <p className="text-sm text-red-600 flex items-center gap-2 mt-1">
+                  <div className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                  </div>
+                  {errors.fullName}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
+                Email Address <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <Mail size={20} />
+                </div>
+                <input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => updateFormData("email", e.target.value)}
+                  onBlur={() => setTouched(prev => ({ ...prev, email: true }))}
+                  placeholder="john@example.com"
+                  required
+                  className={`w-full h-12 pl-10 pr-4 border border-gray-300 rounded-xl bg-white/90 backdrop-blur-sm
+                    text-gray-900 placeholder-gray-500 text-base
+                    focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none
+                    transition-all duration-300 hover:border-gray-400
+                    ${errors.email ? "border-red-400 focus:border-red-500 focus:ring-red-200" : ""}
+                  `}
+                />
+              </div>
+              {errors.email && (
+                <p className="text-sm text-red-600 flex items-center gap-2 mt-1">
+                  <div className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                  </div>
+                  {errors.email}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="phone" className="block text-sm font-semibold text-gray-700">
+                Phone Number <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <Phone size={20} />
+                </div>
+                <input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => updateFormData("phone", e.target.value)}
+                  onBlur={() => setTouched(prev => ({ ...prev, phone: true }))}
+                  placeholder="+1 (555) 000-0000"
+                  required
+                  className={`w-full h-12 pl-10 pr-4 border border-gray-300 rounded-xl bg-white/90 backdrop-blur-sm
+                    text-gray-900 placeholder-gray-500 text-base
+                    focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none
+                    transition-all duration-300 hover:border-gray-400
+                    ${errors.phone ? "border-red-400 focus:border-red-500 focus:ring-red-200" : ""}
+                  `}
+                />
+              </div>
+              {errors.phone && (
+                <p className="text-sm text-red-600 flex items-center gap-2 mt-1">
+                  <div className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                  </div>
+                  {errors.phone}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
+                Password <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <Lock size={20} />
+                </div>
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={(e) => updateFormData("password", e.target.value)}
+                  onBlur={() => setTouched(prev => ({ ...prev, password: true }))}
+                  placeholder="Create a strong password"
+                  required
+                  className={`w-full h-12 pl-10 pr-12 border border-gray-300 rounded-xl bg-white/90 backdrop-blur-sm
+                    text-gray-900 placeholder-gray-500 text-base
+                    focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none
+                    transition-all duration-300 hover:border-gray-400
+                    ${errors.password ? "border-red-400 focus:border-red-500 focus:ring-red-200" : ""}
+                  `}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-sm text-red-600 flex items-center gap-2 mt-1">
+                  <div className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                  </div>
+                  {errors.password}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700">
+                Confirm Password <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <Lock size={20} />
+                </div>
+                <input
+                  id="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={formData.confirmPassword}
+                  onChange={(e) => updateFormData("confirmPassword", e.target.value)}
+                  onBlur={() => setTouched(prev => ({ ...prev, confirmPassword: true }))}
+                  placeholder="Confirm your password"
+                  required
+                  className={`w-full h-12 pl-10 pr-12 border border-gray-300 rounded-xl bg-white/90 backdrop-blur-sm
+                    text-gray-900 placeholder-gray-500 text-base
+                    focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none
+                    transition-all duration-300 hover:border-gray-400
+                    ${errors.confirmPassword ? "border-red-400 focus:border-red-500 focus:ring-red-200" : ""}
+                  `}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-600 flex items-center gap-2 mt-1">
+                  <div className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                  </div>
+                  {errors.confirmPassword}
+                </p>
+              )}
+            </div>
+
+            <div className="flex items-start gap-3">
               <input
                 type="checkbox"
-                checked={agreeTerms}
-                onChange={(e) => setAgreeTerms(e.target.checked)}
-                className="w-4 h-4 mt-0.5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 transition cursor-pointer"
+                id="agreeToTerms"
+                checked={formData.agreeToTerms}
+                onChange={(e) => updateFormData("agreeToTerms", e.target.checked)}
+                className="mt-1 w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
               />
-              <span className="text-sm text-gray-600 group-hover:text-gray-900 transition">
+              <label htmlFor="agreeToTerms" className="text-sm text-gray-700 leading-relaxed cursor-pointer">
                 I agree to the{" "}
-                <a href="#" className="text-blue-600 hover:text-blue-700 font-medium hover:underline">
+                <Link href="/terms" className="text-blue-600 hover:text-blue-700 font-medium hover:underline">
                   Terms of Service
-                </a>{" "}
+                </Link>{" "}
                 and{" "}
-                <a href="#" className="text-blue-600 hover:text-blue-700 font-medium hover:underline">
+                <Link href="/privacy" className="text-blue-600 hover:text-blue-700 font-medium hover:underline">
                   Privacy Policy
-                </a>
-              </span>
-            </label>
+                </Link>
+              </label>
+            </div>
 
             <button
               type="submit"
-              disabled={loading || !agreeTerms}
-              className="w-full h-12 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              disabled={loading || !isFormValid}
+              className="w-full h-12 bg-gradient-to-r from-green-500 to-blue-500 text-white font-semibold rounded-xl
+                hover:from-green-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl
+                transform hover:scale-[1.02] active:scale-[0.98]"
             >
-              <span className="inline-flex items-center justify-center gap-2">
-                {loading && (
-                  <span className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
-                )}
-                {loading ? "Creating account..." : "Sign Up"}
-              </span>
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  Creating Account...
+                </div>
+              ) : (
+                "Create Account"
+              )}
             </button>
 
-            {/* Divider */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
+                <div className="w-full border-t border-gray-300"></div>
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-3 text-gray-500 font-medium">Or continue with</span>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-3 bg-white text-gray-500">Already have an account?</span>
               </div>
             </div>
 
-            {/* Social buttons */}
-            <div className="grid grid-cols-3 gap-3">
-              <button
-                type="button"
-                className="h-12 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-blue-50 hover:border-blue-300 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center group shadow-sm"
-                aria-label="Continue with Facebook"
+            <div className="space-y-2 text-center">
+              <Link 
+                href="/login" 
+                className="block w-full py-3 px-4 border-2 border-gray-300 text-gray-700 font-medium rounded-xl
+                  hover:border-gray-400 hover:bg-gray-50 transition-all duration-300 hover:scale-[1.01]"
               >
-                <span className="group-hover:scale-110 transition-transform duration-200">
-                  <FacebookIcon />
-                </span>
-              </button>
-              <button
-                type="button"
-                className="h-12 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-red-50 hover:border-red-300 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center group shadow-sm"
-                aria-label="Continue with Google"
+                Sign In Instead
+              </Link>
+              <Link 
+                href="/" 
+                className="inline-block text-sm text-gray-500 hover:text-gray-700 font-medium hover:underline mt-4"
               >
-                <span className="group-hover:scale-110 transition-transform duration-200">
-                  <GoogleBrandIcon />
-                </span>
-              </button>
-              <button
-                type="button"
-                className="h-12 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 hover:border-gray-400 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center group shadow-sm"
-                aria-label="Continue with Apple"
-              >
-                <span className="group-hover:scale-110 transition-transform duration-200">
-                  <AppleIcon />
-                </span>
-              </button>
+                ← Back to Home
+              </Link>
             </div>
           </form>
-
-          {/* Sign in link */}
-          <p className="mt-6 text-center text-sm text-gray-600">
-            Have an account?{" "}
-            <Link
-              href="/login"
-              className="font-semibold text-blue-600 hover:text-blue-700 transition hover:underline"
-            >
-              Sign in
-            </Link>
-          </p>
         </div>
       </div>
     </div>

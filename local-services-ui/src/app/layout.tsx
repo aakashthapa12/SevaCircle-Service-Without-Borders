@@ -3,8 +3,7 @@ import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { ToastProvider } from "@/components/ui/ToastProvider";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer-new";
+import ConditionalLayout from "@/components/ConditionalLayout";
 
 // Inter for body text - optimal readability
 const inter = Inter({
@@ -43,14 +42,9 @@ export default function RootLayout({
         <LanguageProvider>
           <ToastProvider>
             <div className="flex flex-col min-h-screen w-full">
-              <Navbar />
-              <main className="flex-1 w-full">
-                {/* Universal container system using our rem-based design */}
-                <div className="container-universal">
-                  {children}
-                </div>
-              </main>
-              <Footer />
+              <ConditionalLayout>
+                {children}
+              </ConditionalLayout>
             </div>
           </ToastProvider>
         </LanguageProvider>

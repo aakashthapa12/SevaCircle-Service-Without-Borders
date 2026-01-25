@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, X, Globe, User, ChevronDown, LogOut, Settings, Bell, Package, Heart, CreditCard, ShieldCheck } from "lucide-react";
+import { Menu, X, Globe, User, LogOut, Calendar, Heart, Search, Phone } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -36,23 +36,12 @@ export const Navbar = () => {
   };
 
   useEffect(() => {
-    // Check login status on mount
     checkLoginStatus();
-
-    // Check on storage change (when localStorage is updated)
-    const handleStorageChange = () => {
-      checkLoginStatus();
-    };
-
-    // Check on window focus (when user returns to the tab)
-    const handleFocus = () => {
-      checkLoginStatus();
-    };
+    const handleStorageChange = () => checkLoginStatus();
+    const handleFocus = () => checkLoginStatus();
 
     window.addEventListener("storage", handleStorageChange);
     window.addEventListener("focus", handleFocus);
-
-    // Also set up an interval to check periodically (every 1 second)
     const interval = setInterval(checkLoginStatus, 1000);
 
     return () => {
@@ -65,6 +54,9 @@ export const Navbar = () => {
   const handleLogout = () => {
     localStorage.removeItem("userRole");
     localStorage.removeItem("customerProfile");
+    // Remove cookies if set (for SSR/middleware)
+    document.cookie = "userRole=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie = "customerProfile=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     setIsLoggedIn(false);
     setShowProfileMenu(false);
     window.location.href = "/";
@@ -75,88 +67,309 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white/95 backdrop-blur-md border-b border-purple-100 shadow-lg sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-18">
+    <nav className="bg-white shadow-sm border-b border-purple-100 sticky top-0 z-50">
+      <div className="container-universal">
+        <div className="flex justify-between items-center py-3">
+          
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-teal-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+            <div className="w-11 h-11 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
               <span className="text-white text-xl font-bold">🏠</span>
             </div>
-            <span className="text-2xl font-bold text-gray-900 hidden sm:inline">
-              LOCAL SERVICING
-            </span>
+            <div className="hidden sm:block">
+              <span className="text-heading-md font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                LOCAL SERVICING
+              </span>
+              <p className="text-caption text-gray-500 font-medium">Home Services Platform</p>
+            </div>
           </Link>
 
-          {/* Contact Info */}
-          <div className="hidden lg:flex items-center gap-6 text-sm font-semibold text-gray-700">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              <span>(555) 123-4567</span>
-            </div>
-            <div className="h-4 w-px bg-gray-300"></div>
-            <span className="text-purple-600">Available 24/7</span>
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-8">
+            <Link href="/" className="text-body-base font-semibold text-gray-700 hover:text-purple-600 transition-colors relative group">
+              Home
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-600 group-hover:w-full transition-all duration-300"></span>
+            </Link>
+            <Link href="/search" className="text-body-base font-semibold text-gray-700 hover:text-purple-600 transition-colors relative group">
+              Services
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-600 group-hover:w-full transition-all duration-300"></span>
+            </Link>
+            <Link href="/bookings" className="text-body-base font-semibold text-gray-700 hover:text-purple-600 transition-colors relative group">
+              My Bookings
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-600 group-hover:w-full transition-all duration-300"></span>
+            </Link>
+            <Link href="/about" className="text-body-base font-semibold text-gray-700 hover:text-purple-600 transition-colors relative group">
+              About
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-600 group-hover:w-full transition-all duration-300"></span>
+            </Link>
           </div>
 
-          {/* Desktop menu */}
-          <div className="hidden md:flex items-center gap-8">
-            <Link
-              href="/"
-              className="text-gray-700 hover:text-blue-600 transition-colors font-semibold text-lg"
-            >
-              Home
-            </Link>
-            <Link
-              href="/search"
-              className="text-gray-700 hover:text-blue-600 transition-colors font-semibold text-lg"
-            >
-              Services
-            </Link>
-            <Link
-              href="/customer-profile"
-              className="text-gray-700 hover:text-purple-600 transition-colors font-semibold text-lg"
-            >
-              My Profile
-            </Link>
-            <Link
-              href="/about"
-              className="text-gray-700 hover:text-purple-600 transition-colors font-semibold text-lg"
-            >
-              About
-            </Link>
-            <Link
-              href="/contact"
-              className="text-gray-700 hover:text-teal-600 transition-colors font-medium"
-            >
-              Finance
-            </Link>
-            <Link
-              href="/maintenance"
-              className="text-gray-700 hover:text-teal-600 transition-colors font-medium"
-            >
-              Maintenance
-            </Link>
-            <Link
-              href="/admin"
-              className="text-gray-700 hover:text-purple-600 transition-colors font-medium px-3 py-2 bg-purple-50 rounded-lg hover:bg-purple-100"
-            >
-              Admin
-            </Link>
-
-            {/* Contact Info */}
-            <div className="flex items-center gap-4 pl-4 border-l border-gray-200">
-              <div className="text-sm">
-                <div className="text-gray-500">Call us</div>
-                <div className="font-bold text-orange-600">(800)-236-8937</div>
+          {/* Right Side Actions */}
+          <div className="flex items-center gap-4">
+            
+            {/* Phone Contact - Hidden on mobile */}
+            <div className="hidden lg:flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-lg">
+              <Phone size={18} className="text-orange-500" />
+              <div>
+                <div className="text-caption text-orange-600 font-medium">Call Now</div>
+                <div className="font-bold text-orange-700">(800) 236-8937</div>
               </div>
-              
-              {/* Language Selector */}
-              <div className="flex items-center gap-1">
-                <Globe size={16} className="text-gray-600" />
+            </div>
+
+            {/* Language Selector */}
+            <div className="relative">
+              <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 group">
+                <Globe size={16} className="text-gray-600 group-hover:text-purple-600" />
                 <select
                   value={language}
                   onChange={(e) => handleLanguageChange(e.target.value as "en" | "hi" | "mr")}
-                  className="bg-transparent outline-none cursor-pointer text-sm text-gray-700"
+                  className="bg-transparent outline-none cursor-pointer text-body-sm text-gray-700 group-hover:text-purple-700 pr-1"
+                >
+                  <option value="en">EN</option>
+                  <option value="hi">हि</option>
+                  <option value="mr">मर</option>
+                </select>
+              </div>
+            </div>
+
+            {/* User Profile or Login Button */}
+            {isLoggedIn ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  className="flex items-center gap-3 px-4 py-2.5 border-2 border-purple-200 rounded-xl hover:border-purple-400 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 transition-all duration-300 group shadow-sm hover:shadow-md"
+                >
+                  <div className="relative">
+                    <div className="w-10 h-10 bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 rounded-full flex items-center justify-center shadow-lg ring-2 ring-purple-200 group-hover:ring-purple-300 transition-all">
+                      <User size={20} className="text-white" />
+                    </div>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></div>
+                  </div>
+                  <div className="hidden sm:block text-left">
+                    <div className="text-sm font-bold text-gray-800 group-hover:text-purple-700 transition-colors">
+                      {userName}
+                    </div>
+                    <div className="text-xs text-gray-500 font-medium">
+                      View Profile
+                    </div>
+                  </div>
+                  <svg className="hidden sm:block w-4 h-4 text-gray-400 group-hover:text-purple-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {/* Profile Dropdown */}
+                {showProfileMenu && (
+                  <>
+                    {/* Backdrop */}
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setShowProfileMenu(false)}
+                    />
+                    
+                    <div className="absolute right-0 mt-3 w-80 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                      {/* Profile Header with Gradient */}
+                      <div className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-600 px-6 py-6">
+                        <div className="flex items-center gap-4">
+                          <div className="relative">
+                            <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center ring-4 ring-white/30">
+                              <User size={28} className="text-white" />
+                            </div>
+                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-lg font-bold text-white mb-0.5">{userName}</h3>
+                            <p className="text-sm text-white/90 font-medium">Premium Member</p>
+                          </div>
+                        </div>
+                        {/* Decorative circles */}
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+                        <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/10 rounded-full -ml-10 -mb-10"></div>
+                      </div>
+                      
+                      {/* Profile Stats */}
+                      <div className="px-6 py-5 bg-gradient-to-br from-gray-50 to-blue-50 border-b border-gray-200">
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="text-center">
+                            <div className="w-12 h-12 mx-auto mb-2 bg-purple-100 rounded-xl flex items-center justify-center">
+                              <Calendar size={20} className="text-purple-600" />
+                            </div>
+                            <div className="text-xl font-bold text-gray-900">12</div>
+                            <div className="text-xs text-gray-600 font-medium">Bookings</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="w-12 h-12 mx-auto mb-2 bg-green-100 rounded-xl flex items-center justify-center">
+                              <span className="text-lg">💰</span>
+                            </div>
+                            <div className="text-xl font-bold text-gray-900">₹2.4K</div>
+                            <div className="text-xs text-gray-600 font-medium">Saved</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="w-12 h-12 mx-auto mb-2 bg-yellow-100 rounded-xl flex items-center justify-center">
+                              <span className="text-lg">⭐</span>
+                            </div>
+                            <div className="text-xl font-bold text-gray-900">4.9</div>
+                            <div className="text-xs text-gray-600 font-medium">Rating</div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Menu Items */}
+                      <div className="p-3">
+                        <Link 
+                          href="/customer-profile" 
+                          className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 hover:text-purple-700 rounded-xl transition-all duration-200 group"
+                          onClick={() => setShowProfileMenu(false)}
+                        >
+                          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                            <User size={18} className="text-purple-600" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-semibold">My Profile</div>
+                            <div className="text-xs text-gray-500">View & edit your details</div>
+                          </div>
+                        </Link>
+                      
+                        <Link 
+                          href="/bookings" 
+                          className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-blue-50 hover:text-indigo-700 rounded-xl transition-all duration-200 group"
+                          onClick={() => setShowProfileMenu(false)}
+                        >
+                          <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
+                            <Calendar size={18} className="text-indigo-600" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-semibold">My Bookings</div>
+                            <div className="text-xs text-gray-500">Track your services</div>
+                          </div>
+                        </Link>
+                      
+                        <Link 
+                          href="/favorites" 
+                          className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-gradient-to-r hover:from-pink-50 hover:to-red-50 hover:text-pink-700 rounded-xl transition-all duration-200 group"
+                          onClick={() => setShowProfileMenu(false)}
+                        >
+                          <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center group-hover:bg-pink-200 transition-colors">
+                            <Heart size={18} className="text-pink-600" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-semibold">Favorites</div>
+                            <div className="text-xs text-gray-500">Saved services</div>
+                          </div>
+                        </Link>
+
+                        <Link 
+                          href="/settings" 
+                          className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-slate-50 hover:text-gray-800 rounded-xl transition-all duration-200 group"
+                          onClick={() => setShowProfileMenu(false)}
+                        >
+                          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                            <span className="text-lg">⚙️</span>
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-semibold">Settings</div>
+                            <div className="text-xs text-gray-500">Preferences & privacy</div>
+                          </div>
+                        </Link>
+                      </div>
+                      
+                      {/* Logout */}
+                      <div className="border-t border-gray-200 p-3 bg-gray-50">
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center gap-4 px-4 py-3.5 w-full text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 group"
+                        >
+                          <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                            <LogOut size={18} className="text-red-600" />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <div className="font-bold">Logout</div>
+                            <div className="text-xs text-red-500">Sign out from account</div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <Link href="/login" className="text-body-base font-semibold text-gray-700 hover:text-purple-600 transition-colors">
+                  Login
+                </Link>
+                <Link href="/signup" className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-indigo-700 transform hover:scale-105 transition-all duration-200 shadow-md hover:shadow-lg">
+                  Get Started
+                </Link>
+              </div>
+            )}
+
+            {/* Mobile menu button */}
+            <button
+              className="md:hidden p-2 hover:bg-purple-50 rounded-lg transition-colors"
+              onClick={() => setIsOpen(!isOpen)}
+              aria-label="Toggle menu"
+            >
+              {isOpen ? <X size={22} className="text-gray-700" /> : <Menu size={22} className="text-gray-700" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {isOpen && (
+          <div className="md:hidden bg-white border-t border-purple-100 shadow-lg">
+            <div className="p-4 space-y-4">
+              
+              {/* Mobile Navigation Links */}
+              <div className="space-y-2">
+                <Link 
+                  href="/" 
+                  className="flex items-center px-4 py-3 text-body-base font-semibold text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Home
+                </Link>
+                <Link 
+                  href="/search" 
+                  className="flex items-center gap-3 px-4 py-3 text-body-base font-semibold text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Search size={18} className="text-purple-500" />
+                  <span>Find Services</span>
+                </Link>
+                <Link 
+                  href="/bookings" 
+                  className="flex items-center gap-3 px-4 py-3 text-body-base font-semibold text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Calendar size={18} className="text-indigo-500" />
+                  <span>My Bookings</span>
+                </Link>
+                <Link 
+                  href="/about" 
+                  className="flex items-center px-4 py-3 text-body-base font-semibold text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  About
+                </Link>
+              </div>
+
+              {/* Mobile Contact */}
+              <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-lg">
+                <Phone size={18} className="text-orange-500" />
+                <div>
+                  <div className="text-caption text-orange-600 font-medium">Call Now</div>
+                  <div className="font-bold text-orange-700">(800) 236-8937</div>
+                </div>
+              </div>
+
+              {/* Mobile Language Selector */}
+              <div className="flex items-center gap-3 px-4 py-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <Globe size={18} className="text-purple-600" />
+                <span className="text-body-sm text-purple-700 font-medium mr-2">Language:</span>
+                <select
+                  value={language}
+                  onChange={(e) => handleLanguageChange(e.target.value as "en" | "hi" | "mr")}
+                  className="bg-white border border-purple-200 rounded-md px-3 py-1.5 text-body-sm text-purple-700 font-medium"
                 >
                   <option value="en">English</option>
                   <option value="hi">हिंदी</option>
@@ -164,269 +377,60 @@ export const Navbar = () => {
                 </select>
               </div>
 
-              {/* User Profile or CTA Button */}
+              {/* Mobile User Section */}
               {isLoggedIn ? (
-                <div className="relative">
-                  <button
-                    onClick={() => setShowProfileMenu(!showProfileMenu)}
-                    className="group relative w-12 h-12 rounded-full hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                  >
-                    {/* Avatar with gradient border */}
-                    <div className="w-full h-full bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 rounded-full p-0.5 shadow-xl group-hover:shadow-2xl">
-                      <div className="w-full h-full bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
-                        <User size={22} className="text-white" />
-                      </div>
+                <div className="border-t border-purple-100 pt-4 space-y-3">
+                  <div className="flex items-center gap-4 px-4 py-3 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg text-white">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-full flex items-center justify-center">
+                      <User size={20} className="text-white" />
                     </div>
-                    
-                    {/* Online status indicator */}
-                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-400 border-2 border-white rounded-full animate-pulse"></div>
-                    
-                    {/* Notification badge */}
-                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 border-2 border-white rounded-full flex items-center justify-center shadow-lg">
-                      <span className="text-[10px] font-bold text-white">3</span>
+                    <div>
+                      <h3 className="text-body-lg font-bold">{userName}</h3>
+                      <p className="text-caption text-purple-100">Customer Account</p>
                     </div>
-                  </button>
+                  </div>
                   
-                  {/* Enhanced Dropdown Menu */}
-                  {showProfileMenu && (
-                    <div className="absolute right-0 mt-3 w-80 bg-white rounded-3xl shadow-2xl border-2 border-purple-100 overflow-hidden z-50 animate-fade-in">
-                      {/* Profile Header with cover image */}
-                      <div className="relative h-24 bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 overflow-hidden">
-                        {/* Animated pattern */}
-                        <div className="absolute inset-0" style={{backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)', backgroundSize: '30px 30px'}}></div>
-                        
-                        {/* Avatar positioned at bottom */}
-                        <div className="absolute -bottom-8 left-6">
-                          <div className="w-16 h-16 bg-gradient-to-br from-white to-purple-100 rounded-2xl p-1 shadow-xl">
-                            <div className="w-full h-full bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl flex items-center justify-center">
-                              <User size={28} className="text-white" />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* User info section */}
-                      <div className="pt-10 px-6 pb-4 border-b-2 border-gray-100">
-                        <h3 className="font-bold text-gray-900 text-lg">{userName}</h3>
-                        <p className="text-sm text-gray-600">customer@example.com</p>
-                        
-                        {/* Quick stats */}
-                        <div className="grid grid-cols-3 gap-2 mt-4">
-                          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-3 text-center border border-blue-100">
-                            <p className="text-xl font-black text-blue-600">12</p>
-                            <p className="text-xs text-gray-600 font-medium">Bookings</p>
-                          </div>
-                          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-3 text-center border border-green-100">
-                            <p className="text-xl font-black text-green-600">₹2.4K</p>
-                            <p className="text-xs text-gray-600 font-medium">Saved</p>
-                          </div>
-                          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-3 text-center border border-purple-100">
-                            <p className="text-xl font-black text-purple-600">VIP</p>
-                            <p className="text-xs text-gray-600 font-medium">Status</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Menu items */}
-                      <div className="py-2">
-                        <Link
-                          href="/customer-profile"
-                          className="flex items-center gap-4 px-6 py-3 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 transition-all duration-200 group"
-                          onClick={() => setShowProfileMenu(false)}
-                        >
-                          <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <User size={20} className="text-purple-600" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-semibold text-gray-900">My Profile</p>
-                            <p className="text-xs text-gray-500">View and edit your details</p>
-                          </div>
-                        </Link>
-                        
-                        <Link
-                          href="/bookings"
-                          className="flex items-center gap-4 px-6 py-3 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 group"
-                          onClick={() => setShowProfileMenu(false)}
-                        >
-                          <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <Package size={20} className="text-blue-600" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-semibold text-gray-900">My Bookings</p>
-                            <p className="text-xs text-gray-500">Track your orders</p>
-                          </div>
-                          <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</div>
-                        </Link>
-                        
-                        <Link
-                          href="/favorites"
-                          className="flex items-center gap-4 px-6 py-3 hover:bg-gradient-to-r hover:from-pink-50 hover:to-red-50 transition-all duration-200 group"
-                          onClick={() => setShowProfileMenu(false)}
-                        >
-                          <div className="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <Heart size={20} className="text-pink-600" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-semibold text-gray-900">Favorites</p>
-                            <p className="text-xs text-gray-500">Saved services</p>
-                          </div>
-                        </Link>
-                        
-                        <Link
-                          href="/payments"
-                          className="flex items-center gap-4 px-6 py-3 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 transition-all duration-200 group"
-                          onClick={() => setShowProfileMenu(false)}
-                        >
-                          <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <CreditCard size={20} className="text-green-600" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-semibold text-gray-900">Payments</p>
-                            <p className="text-xs text-gray-500">Cards & transactions</p>
-                          </div>
-                        </Link>
-                        
-                        <Link
-                          href="/settings"
-                          className="flex items-center gap-4 px-6 py-3 hover:bg-gradient-to-r hover:from-gray-50 hover:to-slate-50 transition-all duration-200 group"
-                          onClick={() => setShowProfileMenu(false)}
-                        >
-                          <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <Settings size={20} className="text-gray-600" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-semibold text-gray-900">Settings</p>
-                            <p className="text-xs text-gray-500">Privacy & preferences</p>
-                          </div>
-                        </Link>
-                      </div>
-                      
-                      {/* Logout section */}
-                      <div className="border-t-2 border-gray-100 p-3">
-                        <button
-                          onClick={handleLogout}
-                          className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-gradient-to-r from-red-50 to-pink-50 hover:from-red-100 hover:to-pink-100 rounded-2xl transition-all duration-200 group border-2 border-red-200"
-                        >
-                          <LogOut size={20} className="text-red-600 group-hover:rotate-12 transition-transform" />
-                          <span className="font-bold text-red-600">Logout</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  <Link 
+                    href="/customer-profile" 
+                    className="block px-4 py-3 text-body-base font-medium text-gray-700 hover:bg-purple-50 rounded-lg"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    View Profile
+                  </Link>
+                  
+                  <Link 
+                    href="/favorites" 
+                    className="block px-4 py-3 text-body-base font-medium text-gray-700 hover:bg-purple-50 rounded-lg"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    My Favorites
+                  </Link>
+                  
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-3 text-body-base font-medium text-red-600 hover:bg-red-50 rounded-lg"
+                  >
+                    Logout
+                  </button>
                 </div>
               ) : (
-                <Link
-                  href="/login"
-                  className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded font-medium transition-colors"
-                >
-                  Get Started
-                </Link>
-              )}
-            </div>
-          </div>
-
-          {/* Mobile menu button */}
-          <button
-            className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            onClick={() => setIsOpen(!isOpen)}
-            aria-label="Toggle menu"
-          >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-
-        {/* Mobile menu */}
-        {isOpen && (
-          <div className="md:hidden bg-white border-t border-gray-200 shadow-lg">
-            <div className="px-4 py-4 space-y-3">
-              <Link
-                href="/"
-                className="block text-gray-700 hover:text-orange-600 transition-colors font-medium py-2"
-                onClick={() => setIsOpen(false)}
-              >
-                Home
-              </Link>
-              <Link
-                href="/search"
-                className="block text-gray-700 hover:text-orange-600 transition-colors font-medium py-2"
-                onClick={() => setIsOpen(false)}
-              >
-                Services
-              </Link>
-              <Link
-                href="/customer-profile"
-                className="block text-gray-700 hover:text-purple-600 transition-colors font-medium py-2"
-                onClick={() => setIsOpen(false)}
-              >
-                My Profile
-              </Link>
-              <Link
-                href="/about"
-                className="block text-gray-700 hover:text-orange-600 transition-colors font-medium py-2"
-                onClick={() => setIsOpen(false)}
-              >
-                About
-              </Link>
-              <Link
-                href="/admin"
-                className="block text-gray-700 hover:text-purple-600 transition-colors font-medium py-2 px-3 bg-purple-50 rounded-lg"
-                onClick={() => setIsOpen(false)}
-              >
-                Admin Dashboard
-              </Link>
-              
-              <div className="pt-4 border-t border-gray-200">
-                <div className="text-sm text-gray-500 mb-2">Call us</div>
-                <div className="font-bold text-orange-600 mb-4">(800)-236-8937</div>
-                
-                {/* Mobile Language Selector */}
-                <div className="flex items-center gap-2 mb-4">
-                  <Globe size={16} className="text-gray-600" />
-                  <select
-                    value={language}
-                    onChange={(e) => handleLanguageChange(e.target.value as "en" | "hi" | "mr")}
-                    className="bg-gray-50 border border-gray-200 rounded px-2 py-1 text-sm"
+                <div className="border-t border-purple-100 pt-4 space-y-3">
+                  <Link 
+                    href="/login" 
+                    className="block px-4 py-3 bg-gray-100 text-gray-800 hover:bg-gray-200 text-center font-semibold rounded-lg"
+                    onClick={() => setIsOpen(false)}
                   >
-                    <option value="en">English</option>
-                    <option value="hi">हिंदी</option>
-                    <option value="mr">मराठी</option>
-                  </select>
-                </div>
-                
-                {/* Mobile Profile or Login */}
-                {isLoggedIn ? (
-                  <div className="space-y-2">
-                    <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-3 rounded-xl">
-                      <div className="flex items-center gap-2 mb-1">
-                        <User size={18} />
-                        <span className="font-bold">{userName}</span>
-                      </div>
-                      <p className="text-xs text-white/80">Customer Account</p>
-                    </div>
-                    <Link
-                      href="/customer-profile"
-                      className="block bg-purple-100 text-purple-700 px-4 py-2 rounded-lg font-medium transition-colors text-center hover:bg-purple-200"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      View Profile
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full bg-red-100 text-red-700 px-4 py-2 rounded-lg font-medium transition-colors hover:bg-red-200"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="block bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded font-medium transition-colors text-center"
+                    Login
+                  </Link>
+                  <Link 
+                    href="/signup" 
+                    className="block px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-center font-semibold rounded-lg hover:from-purple-700 hover:to-indigo-700"
                     onClick={() => setIsOpen(false)}
                   >
                     Get Started
                   </Link>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         )}
