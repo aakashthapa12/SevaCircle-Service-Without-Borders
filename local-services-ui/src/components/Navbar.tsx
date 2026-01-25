@@ -12,26 +12,62 @@ export const Navbar = () => {
   const [userName, setUserName] = useState("");
   const { language, setLanguage, t } = useLanguage();
 
-  // Function to check login status
+  const [userProfile, setUserProfile] = useState({
+    name: "",
+    email: "",
+    profileImage: "",
+    membershipType: "Premium",
+    stats: {
+      bookings: 0,
+      savedAmount: 0,
+      rating: 0
+    }
+  });
+
+  // Function to check login status and load profile data
   const checkLoginStatus = () => {
     const userRole = localStorage.getItem("userRole");
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
     const profile = localStorage.getItem("customerProfile");
     
-    if (userRole === "user" || profile) {
+    console.log('[Navbar] Checking login status:', { userRole, isLoggedIn, hasProfile: !!profile });
+    
+    if (userRole && isLoggedIn === "true") {
       setIsLoggedIn(true);
       if (profile) {
         try {
           const parsedProfile = JSON.parse(profile);
+          setUserProfile({
+            name: parsedProfile.name || "User",
+            email: parsedProfile.email || "",
+            profileImage: parsedProfile.profileImage || "",
+            membershipType: parsedProfile.membershipType || "Premium",
+            stats: {
+              bookings: parsedProfile.stats?.bookings || 12,
+              savedAmount: parsedProfile.stats?.savedAmount || 2400,
+              rating: parsedProfile.stats?.rating || 4.9
+            }
+          });
           setUserName(parsedProfile.name || "User");
         } catch (e) {
+          setUserProfile(prev => ({ ...prev, name: "User" }));
           setUserName("User");
         }
       } else {
+        setUserProfile(prev => ({ ...prev, name: "User" }));
         setUserName("User");
       }
     } else {
+      console.log('[Navbar] Not logged in, setting state to false');
       setIsLoggedIn(false);
       setUserName("");
+      setUserProfile({
+        name: "",
+        email: "",
+        profileImage: "",
+        membershipType: "Premium",
+        stats: { bookings: 0, savedAmount: 0, rating: 0 }
+      });
     }
   };
 
@@ -52,6 +88,7 @@ export const Navbar = () => {
   }, []);
 
   const handleLogout = () => {
+    // Clear localStorage
     localStorage.removeItem("userRole");
     localStorage.removeItem("customerProfile");
     // Remove cookies if set (for SSR/middleware)

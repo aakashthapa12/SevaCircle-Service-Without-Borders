@@ -23,11 +23,62 @@ import {
 
 export default function WorkerProfilePage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"overview" | "bookings" | "earnings" | "orders">("orders");
+  const [activeTab, setActiveTab] = useState<"overview" | "profile" | "bookings" | "earnings" | "orders">("profile");
   const [orders, setOrders] = useState<any[]>([]);
+  const [workerProfile, setWorkerProfile] = useState({
+    name: "",
+    email: "",
+    role: "",
+    rating: 0,
+    completedJobs: 0,
+    phone: "",
+    location: "",
+    joinedDate: "",
+    hourlyRate: 0,
+    availability: "",
+    profileImage: "",
+    totalEarnings: 0,
+    activeHours: 0
+  });
 
-  // Load orders from localStorage
+  // Simulate database fetch for worker profile
+  const fetchWorkerProfileFromDatabase = async () => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const savedProfile = localStorage.getItem("workerProfile");
+      if (savedProfile) {
+        const profileData = JSON.parse(savedProfile);
+        setWorkerProfile(profileData);
+      } else {
+        // Set default worker data from database simulation
+        const defaultProfile = {
+          name: "John Doe",
+          email: "john.doe@example.com",
+          role: "Professional Plumber",
+          rating: 4.8,
+          completedJobs: 127,
+          phone: "+1 234 567 8900",
+          location: "New York, NY",
+          joinedDate: "Jan 2024",
+          hourlyRate: 45,
+          availability: "Available",
+          profileImage: "",
+          totalEarnings: 5430,
+          activeHours: 342
+        };
+        setWorkerProfile(defaultProfile);
+        localStorage.setItem("workerProfile", JSON.stringify(defaultProfile));
+      }
+    } catch (error) {
+      console.error("Failed to fetch worker profile:", error);
+    }
+  };
+
+  // Load orders and profile data from localStorage/database
   useEffect(() => {
+    fetchWorkerProfileFromDatabase();
+    
     const loadOrders = () => {
       const storedOrders = localStorage.getItem("workerOrders");
       if (storedOrders) {
@@ -44,7 +95,7 @@ export default function WorkerProfilePage() {
   // Mock worker data - replace with actual API call
   const workerData = {
     name: "John Doe",
-    role: "Professional Plumber",
+    role: "Professional Plumber", 
     rating: 4.8,
     completedJobs: 127,
     phone: "+1 234 567 8900",
@@ -81,11 +132,10 @@ export default function WorkerProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        {/* RootLayout provides the universal horizontal container */}
-        <div className="py-4">
+    <div className="min-h-screen bg-gray-50">
+      {/* Professional clean background */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <h1 className="text-2xl font-bold text-gray-900">Worker Dashboard</h1>
@@ -117,14 +167,27 @@ export default function WorkerProfilePage() {
         </div>
       </div>
 
-      <div className="py-8">
+      <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Profile Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8 animate-fade-in">
+        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl p-6 mb-6"
+             style={{
+               background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 100%)'
+             }}>
           <div className="flex flex-col md:flex-row gap-6">
-            {/* Avatar */}
+            {/* Avatar with glassy effect */}
             <div className="flex-shrink-0">
-              <div className="w-32 h-32 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                <User size={64} className="text-white" />
+              <div 
+                className="w-24 h-24 rounded-full flex items-center justify-center backdrop-blur-sm border-2 border-white/30 shadow-xl overflow-hidden"
+                style={{
+                  background: workerProfile.profileImage ? 'transparent' : 
+                    'linear-gradient(135deg, lab(66.9756% -58.27 19.5419) 0%, lab(56% -48 15) 100%)'
+                }}
+              >
+                {workerProfile.profileImage ? (
+                  <img src={workerProfile.profileImage} alt="Profile" className="w-full h-full object-cover rounded-full" />
+                ) : (
+                  <User size={48} className="text-white" />
+                )}
               </div>
             </div>
 
@@ -132,42 +195,42 @@ export default function WorkerProfilePage() {
             <div className="flex-1">
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-3xl font-bold text-gray-900">{workerData.name}</h2>
-                  <p className="text-lg text-gray-600 mt-1">{workerData.role}</p>
+                  <h2 className="text-3xl font-bold text-gray-900">{workerProfile.name}</h2>
+                  <p className="text-lg text-gray-600 mt-1">{workerProfile.role}</p>
                 </div>
                 <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                  {workerData.availability}
+                  {workerProfile.availability}
                 </span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                 <div className="flex items-center gap-2 text-gray-700">
                   <Star className="text-yellow-500 fill-yellow-500" size={20} />
-                  <span className="font-semibold">{workerData.rating}</span>
-                  <span className="text-sm text-gray-500">({workerData.completedJobs} jobs)</span>
+                  <span className="font-semibold">{workerProfile.rating}</span>
+                  <span className="text-sm text-gray-500">({workerProfile.completedJobs} jobs)</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-700">
                   <MapPin size={20} className="text-gray-400" />
-                  <span className="text-sm">{workerData.location}</span>
+                  <span className="text-sm">{workerProfile.location}</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-700">
                   <Calendar size={20} className="text-gray-400" />
-                  <span className="text-sm">Joined {workerData.joinedDate}</span>
+                  <span className="text-sm">Joined {workerProfile.joinedDate}</span>
                 </div>
               </div>
 
               <div className="flex flex-col md:flex-row gap-4 mt-6">
                 <div className="flex items-center gap-2 text-gray-700">
                   <Phone size={18} className="text-gray-400" />
-                  <span className="text-sm">{workerData.phone}</span>
+                  <span className="text-sm">{workerProfile.phone}</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-700">
                   <Mail size={18} className="text-gray-400" />
-                  <span className="text-sm">{workerData.email}</span>
+                  <span className="text-sm">{workerProfile.email}</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-700">
                   <DollarSign size={18} className="text-gray-400" />
-                  <span className="text-sm font-semibold">${workerData.hourlyRate}/hour</span>
+                  <span className="text-sm font-semibold">${workerProfile.hourlyRate}/hour</span>
                 </div>
               </div>
             </div>
@@ -175,40 +238,50 @@ export default function WorkerProfilePage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500 hover:shadow-lg transition">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-white/80 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Completed Jobs</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{workerData.completedJobs}</p>
+                <p className="text-2xl font-semibold text-gray-900 mt-1">{workerProfile.completedJobs}</p>
               </div>
-              <CheckCircle size={40} className="text-blue-500" />
+              <CheckCircle size={32} style={{ color: 'lab(66.9756% -58.27 19.5419)' }} />
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500 hover:shadow-lg transition">
+          <div className="bg-white/80 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Total Earnings</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">$5,430</p>
+                <p className="text-2xl font-semibold text-gray-900 mt-1">${workerProfile.totalEarnings}</p>
               </div>
-              <DollarSign size={40} className="text-green-500" />
+              <DollarSign size={32} style={{ color: 'lab(66.9756% -58.27 19.5419)' }} />
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500 hover:shadow-lg transition">
+          <div className="bg-white/80 backdrop-blur-md rounded-lg shadow-sm border border-white/20 p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Active Hours</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">342</p>
+                <p className="text-2xl font-semibold text-gray-900 mt-1">{workerProfile.activeHours}</p>
               </div>
-              <Clock size={40} className="text-purple-500" />
+              <Clock size={32} style={{ color: 'lab(66.9756% -58.27 19.5419)' }} />
             </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div className="border-b border-gray-200">
             <div className="flex">
+              <button
+                onClick={() => setActiveTab("profile")}
+                className={`flex-1 px-6 py-4 text-sm font-semibold transition relative ${
+                  activeTab === "profile"
+                    ? "text-purple-600 border-b-2 border-purple-600 bg-purple-50"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                }`}
+              >
+                My Profile
+              </button>
               <button
                 onClick={() => setActiveTab("orders")}
                 className={`flex-1 px-6 py-4 text-sm font-semibold transition relative ${
@@ -438,6 +511,140 @@ export default function WorkerProfilePage() {
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab === "profile" && (
+              <div className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Personal Information */}
+                  <div className="bg-white rounded-lg border border-gray-200 p-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <User className="text-gray-600" size={20} />
+                      Personal Information
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                          <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
+                            Read-only
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          value={workerProfile.name}
+                          disabled
+                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <label className="block text-sm font-medium text-gray-700">Email Address</label>
+                          <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
+                            Read-only
+                          </span>
+                        </div>
+                        <input
+                          type="email"
+                          value={workerProfile.email}
+                          disabled
+                          className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                        <input
+                          type="tel"
+                          value={workerProfile.phone}
+                          onChange={(e) => setWorkerProfile(prev => ({ ...prev, phone: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-900"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Professional Details */}
+                  <div className="bg-white rounded-lg border border-gray-200 p-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <Briefcase className="text-gray-600" size={20} />
+                      Professional Details
+                    </h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Role/Specialization</label>
+                        <input
+                          type="text"
+                          value={workerProfile.role}
+                          onChange={(e) => setWorkerProfile(prev => ({ ...prev, role: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-900"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Hourly Rate ($)</label>
+                        <input
+                          type="number"
+                          value={workerProfile.hourlyRate}
+                          onChange={(e) => setWorkerProfile(prev => ({ ...prev, hourlyRate: parseFloat(e.target.value) || 0 }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-900"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                        <input
+                          type="text"
+                          value={workerProfile.location}
+                          onChange={(e) => setWorkerProfile(prev => ({ ...prev, location: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-900"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <Link href="/bookings" className="group">
+                    <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-sm transition-all duration-200 group-hover:border-gray-300">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                          <Calendar size={20} className="text-gray-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-lg font-semibold text-gray-900 group-hover:text-gray-700 transition-colors">
+                            View All Bookings
+                          </h4>
+                          <p className="text-gray-600 text-sm">Manage your service history</p>
+                        </div>
+                        <ArrowRight className="text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all" size={20} />
+                      </div>
+                    </div>
+                  </Link>
+
+                  <Link href="/payments" className="group">
+                    <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-sm transition-all duration-200 group-hover:border-gray-300">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                          <span className="text-gray-600 text-xl">💳</span>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-lg font-semibold text-gray-900 group-hover:text-gray-700 transition-colors">
+                            Payment Methods
+                          </h4>
+                          <p className="text-gray-600 text-sm">Manage payment options</p>
+                        </div>
+                        <ArrowRight className="text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all" size={20} />
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+
+                {/* Save Button */}
+                <div className="flex justify-end">
+                  <button className="bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors">
+                    Save Changes
+                  </button>
+                </div>
               </div>
             )}
 
