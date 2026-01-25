@@ -82,13 +82,13 @@ function SearchContent() {
   const currentCategory = serviceCategories.find(cat => cat.id === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-teal-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-teal-50 w-full">
       {/* Modern Hero Section */}
-      <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 relative overflow-hidden">
+      <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 relative overflow-hidden w-full">
         <div className="absolute inset-0 bg-black/10" />
         <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/10" />
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="relative w-full max-w-[90rem] mx-auto px-[4%] sm:px-[6%] lg:px-[8%] py-[clamp(3rem,5vw,5rem)]">
           <div className="text-center mb-12">
             <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
               {currentCategory ? currentCategory.name : "All Services"}
@@ -134,7 +134,7 @@ function SearchContent() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="w-full max-w-[90rem] mx-auto px-[4%] sm:px-[6%] lg:px-[8%] py-[clamp(2rem,4vw,3rem)]">
         {/* Category Pills */}
         <div className="mb-8">
           <div className="flex flex-wrap gap-3 mb-6">

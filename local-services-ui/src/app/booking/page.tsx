@@ -198,7 +198,8 @@ function BookingContent() {
 
         {/* Header */}
         <div className="bg-white/80 backdrop-blur-xl shadow-lg border-b border-white/20 sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          {/* RootLayout provides the universal horizontal container */}
+          <div className="py-4">
             <div className="flex items-center justify-between">
               <Link href="/search" className="flex items-center gap-3 text-gray-700 hover:text-gray-900 transition-all hover:scale-105">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
@@ -214,7 +215,7 @@ function BookingContent() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
+        <div className="py-12 relative z-10">
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Service Details */}
             <div className="lg:col-span-2 space-y-6">
@@ -454,7 +455,7 @@ function BookingContent() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
       {/* Progress Bar */}
       <div className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+  <div className="py-4">
           <div className="flex items-center justify-between">
             <button 
               onClick={() => setStep(Math.max(1, step - 1))}
@@ -477,7 +478,7 @@ function BookingContent() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div className="py-8">
         {/* Step 2: Cart Review */}
         {step === 2 && (
           <div className="grid lg:grid-cols-3 gap-8">
@@ -701,7 +702,7 @@ function BookingContent() {
 
         {/* Step 5: Payment & Confirmation */}
         {step === 5 && (
-          <div className="max-w-4xl mx-auto">
+          <div>
             {/* Animated Header with Gradient */}
             <div className="text-center mb-8 animate-fade-in">
               <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full mb-4 shadow-2xl">
