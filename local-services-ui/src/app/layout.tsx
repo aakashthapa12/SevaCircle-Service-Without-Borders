@@ -4,8 +4,6 @@ import "./globals.css";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import ConditionalLayout from "@/components/ConditionalLayout";
-import AuthGuard from "@/components/AuthGuard";
-import "@/utils/authDebug"; // Import auth debugging utilities
 
 // Inter for body text - optimal readability
 const inter = Inter({
@@ -44,11 +42,9 @@ export default function RootLayout({
         <LanguageProvider>
           <ToastProvider>
             <div className="flex flex-col min-h-screen w-full">
-              <AuthGuard>
-                <ConditionalLayout>
-                  {children}
-                </ConditionalLayout>
-              </AuthGuard>
+              <ConditionalLayout>
+                {children}
+              </ConditionalLayout>
             </div>
           </ToastProvider>
         </LanguageProvider>

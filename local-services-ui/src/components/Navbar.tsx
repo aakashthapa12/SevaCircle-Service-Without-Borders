@@ -91,15 +91,9 @@ export const Navbar = () => {
     // Clear localStorage
     localStorage.removeItem("userRole");
     localStorage.removeItem("customerProfile");
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("userEmail");
-    
-    // Clear cookies for middleware
+    // Remove cookies if set (for SSR/middleware)
     document.cookie = "userRole=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "isLoggedIn=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "userEmail=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "rememberMe=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    
+    document.cookie = "customerProfile=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     setIsLoggedIn(false);
     setShowProfileMenu(false);
     window.location.href = "/";
@@ -135,6 +129,10 @@ export const Navbar = () => {
             </Link>
             <Link href="/search" className="text-body-base font-semibold text-gray-700 hover:text-purple-600 transition-colors relative group">
               Services
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-600 group-hover:w-full transition-all duration-300"></span>
+            </Link>
+            <Link href="/bookings" className="text-body-base font-semibold text-gray-700 hover:text-purple-600 transition-colors relative group">
+              My Bookings
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-600 group-hover:w-full transition-all duration-300"></span>
             </Link>
             <Link href="/about" className="text-body-base font-semibold text-gray-700 hover:text-purple-600 transition-colors relative group">
@@ -176,43 +174,23 @@ export const Navbar = () => {
               <div className="relative">
                 <button
                   onClick={() => setShowProfileMenu(!showProfileMenu)}
-                  className="relative flex items-center gap-3 px-4 py-2 bg-white/20 backdrop-blur-md border border-white/30 rounded-full hover:bg-white/30 hover:border-white/50 transition-all duration-300 group shadow-lg hover:shadow-xl"
-                  style={{
-                    background: showProfileMenu ? 
-                      'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%)' :
-                      'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)'
-                  }}
+                  className="flex items-center gap-3 px-4 py-2.5 border-2 border-purple-200 rounded-xl hover:border-purple-400 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 transition-all duration-300 group shadow-sm hover:shadow-md"
                 >
                   <div className="relative">
-                    <div 
-                      className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm border border-white/20 overflow-hidden"
-                      style={{
-                        background: userProfile.profileImage ? 
-                          'transparent' : 
-                          'linear-gradient(135deg, lab(66.9756% -58.27 19.5419) 0%, lab(56% -48 15) 100%)'
-                      }}
-                    >
-                      {userProfile.profileImage ? (
-                        <img 
-                          src={userProfile.profileImage} 
-                          alt="Profile" 
-                          className="w-full h-full object-cover rounded-full"
-                        />
-                      ) : (
-                        <User size={20} className="text-white" />
-                      )}
+                    <div className="w-10 h-10 bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 rounded-full flex items-center justify-center shadow-lg ring-2 ring-purple-200 group-hover:ring-purple-300 transition-all">
+                      <User size={20} className="text-white" />
                     </div>
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></div>
                   </div>
                   <div className="hidden sm:block text-left">
-                    <div className="text-sm font-semibold text-gray-900 group-hover:text-gray-700 transition-colors">
-                      {userProfile.name || userName}
+                    <div className="text-sm font-bold text-gray-800 group-hover:text-purple-700 transition-colors">
+                      {userName}
                     </div>
-                    <div className="text-xs text-gray-500">
-                      {userProfile.membershipType} Member
+                    <div className="text-xs text-gray-500 font-medium">
+                      View Profile
                     </div>
                   </div>
-                  <svg className="hidden sm:block w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="hidden sm:block w-4 h-4 text-gray-400 group-hover:text-purple-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
@@ -226,81 +204,65 @@ export const Navbar = () => {
                       onClick={() => setShowProfileMenu(false)}
                     />
                     
-                    <div className="absolute right-0 mt-3 w-80 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl z-50 overflow-hidden"
-                         style={{
-                           background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 100%)'
-                         }}>
-                      {/* Profile Header */}
-                      <div 
-                        className="px-6 py-4 border-b border-white/30 backdrop-blur-sm"
-                        style={{
-                          background: 'linear-gradient(135deg, lab(66.9756% -58.27 19.5419) 0%, lab(56% -48 15) 100%)'
-                        }}
-                      >
+                    <div className="absolute right-0 mt-3 w-80 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                      {/* Profile Header with Gradient */}
+                      <div className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-600 px-6 py-6">
                         <div className="flex items-center gap-4">
-                          <div 
-                            className="w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/30 overflow-hidden"
-                            style={{
-                              background: userProfile.profileImage ? 'transparent' : 'rgba(255,255,255,0.2)'
-                            }}
-                          >
-                            {userProfile.profileImage ? (
-                              <img 
-                                src={userProfile.profileImage} 
-                                alt="Profile" 
-                                className="w-full h-full object-cover rounded-full"
-                              />
-                            ) : (
-                              <User size={24} className="text-white" />
-                            )}
+                          <div className="relative">
+                            <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center ring-4 ring-white/30">
+                              <User size={28} className="text-white" />
+                            </div>
+                            <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
                           </div>
                           <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-white">{userProfile.name}</h3>
-                            <p className="text-sm text-white/90">{userProfile.membershipType} Member</p>
+                            <h3 className="text-lg font-bold text-white mb-0.5">{userName}</h3>
+                            <p className="text-sm text-white/90 font-medium">Premium Member</p>
                           </div>
                         </div>
+                        {/* Decorative circles */}
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+                        <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/10 rounded-full -ml-10 -mb-10"></div>
                       </div>
                       
                       {/* Profile Stats */}
-                      <div className="px-6 py-4 bg-white/50 backdrop-blur-sm border-b border-white/20">
+                      <div className="px-6 py-5 bg-gradient-to-br from-gray-50 to-blue-50 border-b border-gray-200">
                         <div className="grid grid-cols-3 gap-4">
                           <div className="text-center">
-                            <div className="w-10 h-10 mx-auto mb-2 bg-white/30 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20">
-                              <Calendar size={18} 
-                                style={{ color: 'lab(66.9756% -58.27 19.5419)' }} />
+                            <div className="w-12 h-12 mx-auto mb-2 bg-purple-100 rounded-xl flex items-center justify-center">
+                              <Calendar size={20} className="text-purple-600" />
                             </div>
-                            <div className="text-lg font-semibold text-gray-900">{userProfile.stats.bookings}</div>
-                            <div className="text-xs text-gray-500">Bookings</div>
+                            <div className="text-xl font-bold text-gray-900">12</div>
+                            <div className="text-xs text-gray-600 font-medium">Bookings</div>
                           </div>
                           <div className="text-center">
-                            <div className="w-10 h-10 mx-auto mb-2 bg-white/30 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20">
+                            <div className="w-12 h-12 mx-auto mb-2 bg-green-100 rounded-xl flex items-center justify-center">
                               <span className="text-lg">💰</span>
                             </div>
-                            <div className="text-lg font-semibold text-gray-900">₹{(userProfile.stats.savedAmount / 1000).toFixed(1)}K</div>
-                            <div className="text-xs text-gray-500">Saved</div>
+                            <div className="text-xl font-bold text-gray-900">₹2.4K</div>
+                            <div className="text-xs text-gray-600 font-medium">Saved</div>
                           </div>
                           <div className="text-center">
-                            <div className="w-10 h-10 mx-auto mb-2 bg-white/30 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20">
+                            <div className="w-12 h-12 mx-auto mb-2 bg-yellow-100 rounded-xl flex items-center justify-center">
                               <span className="text-lg">⭐</span>
                             </div>
-                            <div className="text-lg font-semibold text-gray-900">{userProfile.stats.rating}</div>
-                            <div className="text-xs text-gray-500">Rating</div>
+                            <div className="text-xl font-bold text-gray-900">4.9</div>
+                            <div className="text-xs text-gray-600 font-medium">Rating</div>
                           </div>
                         </div>
                       </div>
                       
                       {/* Menu Items */}
-                      <div className="p-3 bg-white/30 backdrop-blur-sm">
+                      <div className="p-3">
                         <Link 
                           href="/customer-profile" 
-                          className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-white/50 hover:text-gray-900 rounded-lg transition-all duration-200 backdrop-blur-sm border border-transparent hover:border-white/20"
+                          className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 hover:text-purple-700 rounded-xl transition-all duration-200 group"
                           onClick={() => setShowProfileMenu(false)}
                         >
-                          <div className="w-8 h-8 bg-white/40 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20">
-                            <User size={16} style={{ color: 'lab(66.9756% -58.27 19.5419)' }} />
+                          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                            <User size={18} className="text-purple-600" />
                           </div>
                           <div className="flex-1">
-                            <div className="font-medium">My Profile</div>
+                            <div className="font-semibold">My Profile</div>
                             <div className="text-xs text-gray-500">View & edit your details</div>
                           </div>
                         </Link>
@@ -334,20 +296,6 @@ export const Navbar = () => {
                         </Link>
 
                         <Link 
-                          href="/payments" 
-                          className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-all duration-200"
-                          onClick={() => setShowProfileMenu(false)}
-                        >
-                          <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                            <span className="text-lg">💳</span>
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-medium">Payment Methods</div>
-                            <div className="text-xs text-gray-500">Manage cards & UPI</div>
-                          </div>
-                        </Link>
-
-                        <Link 
                           href="/settings" 
                           className="flex items-center gap-4 px-4 py-3.5 text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-slate-50 hover:text-gray-800 rounded-xl transition-all duration-200 group"
                           onClick={() => setShowProfileMenu(false)}
@@ -366,13 +314,13 @@ export const Navbar = () => {
                       <div className="border-t border-gray-200 p-3 bg-gray-50">
                         <button
                           onClick={handleLogout}
-                          className="flex items-center gap-3 px-4 py-3 w-full text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+                          className="flex items-center gap-4 px-4 py-3.5 w-full text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 group"
                         >
-                          <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                            <LogOut size={16} className="text-red-600" />
+                          <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                            <LogOut size={18} className="text-red-600" />
                           </div>
                           <div className="flex-1 text-left">
-                            <div className="font-medium">Logout</div>
+                            <div className="font-bold">Logout</div>
                             <div className="text-xs text-red-500">Sign out from account</div>
                           </div>
                         </button>
@@ -424,6 +372,14 @@ export const Navbar = () => {
                 >
                   <Search size={18} className="text-purple-500" />
                   <span>Find Services</span>
+                </Link>
+                <Link 
+                  href="/bookings" 
+                  className="flex items-center gap-3 px-4 py-3 text-body-base font-semibold text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <Calendar size={18} className="text-indigo-500" />
+                  <span>My Bookings</span>
                 </Link>
                 <Link 
                   href="/about" 

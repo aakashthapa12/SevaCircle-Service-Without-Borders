@@ -101,16 +101,10 @@ export default function SignupPage() {
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Set localStorage for client-side checks
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("userRole", formData.role);
       localStorage.setItem("userEmail", formData.email);
       localStorage.setItem("userName", formData.fullName);
-      
-      // Set cookies for middleware authentication
-      document.cookie = `isLoggedIn=true; path=/; max-age=${30 * 24 * 60 * 60}`;
-      document.cookie = `userRole=${formData.role}; path=/; max-age=${30 * 24 * 60 * 60}`;
-      document.cookie = `userEmail=${formData.email}; path=/; max-age=${30 * 24 * 60 * 60}`;
       
       window.dispatchEvent(new Event("storage"));
       

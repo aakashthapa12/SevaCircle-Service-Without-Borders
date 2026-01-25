@@ -52,15 +52,9 @@ export default function LoginPage() {
     try {
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Set localStorage for client-side checks
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("userRole", role);
       localStorage.setItem("userEmail", email);
-      
-      // Set cookies for middleware authentication
-      document.cookie = `isLoggedIn=true; path=/; max-age=${30 * 24 * 60 * 60}`;
-      document.cookie = `userRole=${role}; path=/; max-age=${30 * 24 * 60 * 60}`;
-      document.cookie = `userEmail=${email}; path=/; max-age=${30 * 24 * 60 * 60}`;
       
       if (rememberMe) {
         document.cookie = `rememberMe=true; max-age=${30 * 24 * 60 * 60}`;
@@ -68,24 +62,16 @@ export default function LoginPage() {
       
       window.dispatchEvent(new Event("storage"));
       
-      // Handle redirect if user was trying to access a protected route
-      const urlParams = new URLSearchParams(window.location.search);
-      const redirectTo = urlParams.get('redirect');
-      
-      if (redirectTo && redirectTo !== '/login') {
-        router.push(redirectTo);
-      } else {
-        switch (role) {
-          case "admin":
-            router.push("/admin");
-            break;
-          case "service_provider":
-            router.push("/worker-profile");
-            break;
-          default:
-            router.push("/search");
-            break;
-        }
+      switch (role) {
+        case "admin":
+          router.push("/admin");
+          break;
+        case "service_provider":
+          router.push("/worker-profile");
+          break;
+        default:
+          router.push("/search");
+          break;
       }
     } catch (error) {
       console.error("Login error:", error);
