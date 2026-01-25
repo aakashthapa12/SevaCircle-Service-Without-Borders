@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { 
   Users, 
   UserCheck, 
@@ -13,20 +13,66 @@ import {
   Phone
 } from 'lucide-react'
 
-const mockUsers = [
-  { id: 1, name: 'Rahul Sharma', email: 'rahul@email.com', phone: '+91 9876543210', bookings: 12, spent: 8500, joinDate: '2025-08-15', status: 'Active' },
-  { id: 2, name: 'Priya Patel', email: 'priya@email.com', phone: '+91 9876543211', bookings: 8, spent: 5200, joinDate: '2025-09-22', status: 'Active' },
-  { id: 3, name: 'Manoj Singh', email: 'manoj@email.com', phone: '+91 9876543212', bookings: 15, spent: 12800, joinDate: '2025-07-10', status: 'Premium' },
-  { id: 4, name: 'Anita Gupta', email: 'anita@email.com', phone: '+91 9876543213', bookings: 6, spent: 3400, joinDate: '2025-10-05', status: 'Active' }
-]
+type AdminUser = { id: string; name: string | null; email: string; phone: string | null; createdAt: string }
+
+function useAdminUsers() {
+  const [users, setUsers] = useState<AdminUser[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const run = async () => {
+      try {
+        const res = await fetch('http://localhost:3001/admin/users')
+        if (!res.ok) throw new Error(`Failed: ${res.status}`)
+        const data = await res.json()
+        setUsers(data)
+      } catch (e: any) {
+        setError(e.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    run()
+  }, [])
+
+  return { users, loading, error }
+}
 
 export default function UsersPage() {
+  const { users, loading, error } = useAdminUsers()
+  const [stats, setStats] = useState({
+    activeUsers: 0,
+    newThisMonth: 0,
+    premiumUsers: 0,
+    userSatisfaction: 0
+  })
+  const [statsLoading, setStatsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('http://localhost:3001/admin/users/stats')
+        if (res.ok) {
+          const data = await res.json()
+          setStats(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch user stats:', error)
+      } finally {
+        setStatsLoading(false)
+      }
+    }
+    fetchStats()
+  }, [])
+
   return (
     <div className="p-6 sm:p-8">
       <Header />
       <div className="space-y-6">
-        <UserStats />
-        <UsersTable users={mockUsers} />
+        <UserStats stats={stats} loading={statsLoading} />
+        {error && <div className="text-red-600">{error}</div>}
+        <UsersTable users={users} loading={loading} />
       </div>
     </div>
   )
@@ -43,42 +89,53 @@ function Header() {
   )
 }
 
-function UserStats() {
+function UserStats({ stats, loading }: { stats: any, loading: boolean }) {
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-white rounded-2xl shadow-xl p-6 h-32 animate-pulse"></div>
+        <div className="bg-white rounded-2xl shadow-xl p-6 h-32 animate-pulse"></div>
+        <div className="bg-white rounded-2xl shadow-xl p-6 h-32 animate-pulse"></div>
+        <div className="bg-white rounded-2xl shadow-xl p-6 h-32 animate-pulse"></div>
+      </div>
+    )
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
       <StatCard
         title="Active Users"
-        value="1,247"
+        value={stats.activeUsers}
         icon={Users}
         color="from-blue-500 to-purple-500"
-        change="+12%"
+        change=""
       />
       <StatCard
         title="New This Month"
-        value="156"
+        value={stats.newThisMonth}
         icon={UserCheck}
         color="from-green-500 to-teal-500"
-        change="+25%"
+        change=""
       />
       <StatCard
         title="Premium Users"
-        value="89"
+        value={stats.premiumUsers}
         icon={Star}
         color="from-yellow-500 to-orange-500"
-        change="+8%"
+        change=""
       />
       <StatCard
         title="User Satisfaction"
-        value="4.8/5"
+        value={`${stats.userSatisfaction}/5`}
         icon={Award}
         color="from-purple-500 to-pink-500"
-        change="+2%"
+        change=""
       />
     </div>
   )
 }
 
-function UsersTable({ users }: { users: any[] }) {
+function UsersTable({ users, loading }: { users: any[]; loading: boolean }) {
   return (
     <div className="bg-white rounded-2xl shadow-xl">
       <div className="p-6 border-b border-gray-200 flex justify-between items-center">
@@ -105,23 +162,22 @@ function UsersTable({ users }: { users: any[] }) {
             <tr>
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">User</th>
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Contact</th>
-              <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Total Bookings</th>
-              <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Total Spent</th>
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Join Date</th>
-              <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Status</th>
               <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {users.map((user) => (
+            {loading ? (
+              <tr><td className="px-6 py-4" colSpan={5}>Loading...</td></tr>
+            ) : users.map((user) => (
               <tr key={user.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-medium">
-                      {user.name.split(' ').map((n:string) => n[0]).join('')}
+                      {(user.name || user.email).split(' ').map((n:string) => n[0]).join('')}
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900">{user.name}</div>
+                      <div className="font-medium text-gray-900">{user.name || '—'}</div>
                       <div className="text-sm text-gray-500">ID: {user.id}</div>
                     </div>
                   </div>
@@ -134,27 +190,12 @@ function UsersTable({ users }: { users: any[] }) {
                     </div>
                     <div className="flex items-center gap-2">
                       <Phone size={14} className="text-gray-400" />
-                      <span>{user.phone}</span>
+                      <span>{user.phone || '—'}</span>
                     </div>
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <span className="font-medium text-gray-900">{user.bookings}</span>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="font-medium text-green-600">₹{user.spent.toLocaleString()}</span>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="text-sm text-gray-500">{user.joinDate}</span>
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    user.status === 'Active' ? 'bg-green-100 text-green-800' :
-                    user.status === 'Premium' ? 'bg-purple-100 text-purple-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {user.status}
-                  </span>
+                  <span className="text-sm text-gray-500">{new Date(user.createdAt).toLocaleDateString()}</span>
                 </td>
                 <td className="px-6 py-4">
                   <button className="flex items-center gap-1 text-blue-600 hover:text-blue-800">
@@ -184,9 +225,11 @@ function StatCard({ title, value, icon: Icon, color, change }: {
         <div className={`p-3 rounded-xl bg-gradient-to-r ${color}`}>
           <Icon size={24} className="text-white" />
         </div>
-        <div className="text-right">
-          <div className="text-sm text-green-600 font-medium">{change}</div>
-        </div>
+        {change && (
+          <div className="text-right">
+            <div className="text-sm text-green-600 font-medium">{change}</div>
+          </div>
+        )}
       </div>
       <div className="text-3xl font-bold text-gray-900 mb-1">{value}</div>
       <div className="text-gray-600">{title}</div>

@@ -194,9 +194,16 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      // TODO: call backend signup API based on role
-      await new Promise((r) => setTimeout(r, 700));
+      const path = role === "worker" ? "register/worker" : "register/user";
+      const res = await fetch(`http://localhost:3001/auth/${path}` ,{
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!res.ok) throw new Error("Signup failed");
       router.push("/login");
+    } catch (e) {
+      alert((e as Error).message);
     } finally {
       setLoading(false);
     }

@@ -1,14 +1,58 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Settings, Bell, Lock, CreditCard } from 'lucide-react'
 
 export default function SettingsPage() {
+  const [adminData, setAdminData] = useState({
+    name: '',
+    email: '',
+    phone: ''
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = document.cookie.split('; ').find(row => row.startsWith('auth_token='))?.split('=')[1]
+        const res = await fetch('http://localhost:3001/auth/profile', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setAdminData({
+            name: data.name || '',
+            email: data.email || '',
+            phone: data.phone || ''
+          })
+        }
+      } catch (error) {
+        console.error('Failed to fetch admin profile:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProfile()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="p-6 sm:p-8">
+        <Header />
+        <div className="text-center py-12">Loading settings...</div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-6 sm:p-8">
       <Header />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          <ProfileSettings />
+          <ProfileSettings adminData={adminData} />
           <NotificationSettings />
         </div>
         <div className="space-y-8">
@@ -31,28 +75,85 @@ function Header() {
   )
 }
 
-function ProfileSettings() {
+function ProfileSettings({ adminData }: { adminData: any }) {
+  const [formData, setFormData] = useState({
+    name: adminData.name,
+    email: adminData.email
+  })
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    setFormData({
+      name: adminData.name,
+      email: adminData.email
+    })
+  }, [adminData])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    setMessage('')
+
+    try {
+      const token = document.cookie.split('; ').find(row => row.startsWith('auth_token='))?.split('=')[1]
+      const res = await fetch('http://localhost:3001/auth/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      })
+
+      if (res.ok) {
+        setMessage('Profile updated successfully!')
+        setTimeout(() => setMessage(''), 3000)
+      } else {
+        setMessage('Failed to update profile')
+      }
+    } catch (error) {
+      console.error('Failed to update profile:', error)
+      setMessage('Error updating profile')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <div className="bg-white rounded-2xl shadow-xl p-8">
       <h3 className="text-xl font-bold text-gray-900 mb-6">Profile Settings</h3>
-      <form className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-            <input type="text" defaultValue="Admin" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-            <input type="text" defaultValue="User" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
-          </div>
+      <form className="space-y-6" onSubmit={handleSubmit}>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+          <input 
+            type="text" 
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" 
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-          <input type="email" defaultValue="admin@localservices.com" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
+          <input 
+            type="email" 
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" 
+          />
         </div>
+        {message && (
+          <div className={`text-sm ${message.includes('success') ? 'text-green-600' : 'text-red-600'}`}>
+            {message}
+          </div>
+        )}
         <div className="flex justify-end">
-          <button type="submit" className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-lg font-medium hover:shadow-lg transition-all duration-300">
-            Save Changes
+          <button 
+            type="submit" 
+            disabled={saving}
+            className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-2 rounded-lg font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50"
+          >
+            {saving ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </form>

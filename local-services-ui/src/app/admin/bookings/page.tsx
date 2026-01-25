@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
   Calendar, 
   Clock,
@@ -12,90 +12,56 @@ import {
   IndianRupee
 } from 'lucide-react'
 
-const mockBookings = [
-  {
-    id: 1,
-    user: 'Rahul Sharma',
-    service: 'Plumbing',
-    worker: 'Rajesh Kumar',
-    startTime: '2026-01-25 10:30 AM',
-    endTime: '2026-01-25 11:45 AM',
-    duration: '1h 15m',
-    status: 'Completed',
-    amount: 500,
-    rating: 5
-  },
-  {
-    id: 2,
-    user: 'Priya Patel',
-    service: 'Electrical',
-    worker: 'Amit Sharma',
-    startTime: '2026-01-25 02:15 PM',
-    endTime: '2026-01-25 04:00 PM',
-    duration: '1h 45m',
-    status: 'In Progress',
-    amount: 750,
-    rating: null
-  },
-  {
-    id: 3,
-    user: 'Manoj Singh',
-    service: 'Cleaning',
-    worker: 'Sunita Devi',
-    startTime: '2026-01-25 09:00 AM',
-    endTime: '2026-01-25 11:00 AM',
-    duration: '2h 0m',
-    status: 'Completed',
-    amount: 300,
-    rating: 4
-  },
-  {
-    id: 4,
-    user: 'Anita Gupta',
-    service: 'Carpentry',
-    worker: 'Vikash Yadav',
-    startTime: '2026-01-25 11:45 AM',
-    endTime: null,
-    duration: '-',
-    status: 'Scheduled',
-    amount: 1200,
-    rating: null
-  },
-  {
-    id: 5,
-    user: 'Deepak Kumar',
-    service: 'AC Repair',
-    worker: 'Ramesh Singh',
-    startTime: '2026-01-24 03:30 PM',
-    endTime: '2026-01-24 05:00 PM',
-    duration: '1h 30m',
-    status: 'Completed',
-    amount: 800,
-    rating: 5
-  },
-  {
-    id: 6,
-    user: 'Neha Agarwal',
-    service: 'House Cleaning',
-    worker: 'Sunita Devi',
-    startTime: '2026-01-24 08:00 AM',
-    endTime: '2026-01-24 10:30 AM',
-    duration: '2h 30m',
-    status: 'Completed',
-    amount: 450,
-    rating: 4
-  }
-]
-
 export default function BookingsPage() {
   const [searchTerm, setSearchTerm] = useState('')
+  const [bookings, setBookings] = useState<any[]>([])
+  const [stats, setStats] = useState({
+    totalBookings: 0,
+    activeBookings: 0,
+    completedToday: 0,
+    successRate: 0
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [statsRes, bookingsRes] = await Promise.all([
+          fetch('http://localhost:3001/admin/bookings/stats'),
+          fetch('http://localhost:3001/admin/bookings/all')
+        ])
+
+        if (statsRes.ok && bookingsRes.ok) {
+          const statsData = await statsRes.json()
+          const bookingsData = await bookingsRes.json()
+          setStats(statsData)
+          setBookings(bookingsData)
+        }
+      } catch (error) {
+        console.error('Failed to fetch bookings data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="p-6 sm:p-8">
+        <Header />
+        <div className="text-center py-12">Loading...</div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-6 sm:p-8">
       <Header />
       <div className="space-y-6">
-        <BookingStats />
-        <BookingsTable bookings={mockBookings} />
+        <BookingStats stats={stats} />
+        <BookingsTable bookings={bookings} searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       </div>
     </div>
   )
@@ -112,42 +78,61 @@ function Header() {
   )
 }
 
-function BookingStats() {
+function BookingStats({ stats }: { stats: any }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
       <StatCard
         title="Total Bookings"
-        value="3,456"
+        value={stats.totalBookings}
         icon={Calendar}
         color="from-purple-500 to-pink-500"
-        change="+15%"
+        change=""
       />
       <StatCard
         title="Active Bookings"
-        value="23"
+        value={stats.activeBookings}
         icon={Clock}
         color="from-blue-500 to-cyan-500"
-        change="+5%"
+        change=""
       />
       <StatCard
         title="Completed Today"
-        value="12"
+        value={stats.completedToday}
         icon={Activity}
         color="from-green-500 to-teal-500"
-        change="+8%"
+        change=""
       />
       <StatCard
         title="Success Rate"
-        value="98.5%"
+        value={`${stats.successRate}%`}
         icon={Award}
         color="from-yellow-500 to-orange-500"
-        change="+1.2%"
+        change=""
       />
     </div>
   )
 }
 
-function BookingsTable({ bookings }: { bookings: any[] }) {
+function BookingsTable({ bookings, searchTerm, setSearchTerm }: { bookings: any[], searchTerm: string, setSearchTerm: (term: string) => void }) {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleString('en-IN', { 
+      year: 'numeric', 
+      month: '2-digit', 
+      day: '2-digit',
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true 
+    })
+  }
+
+  const filteredBookings = bookings.filter(booking => 
+    booking.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    booking.worker?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    booking.service?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    booking.id?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
   return (
     <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
       <div className="p-6 border-b border-gray-200 flex justify-between items-center">
@@ -158,6 +143,8 @@ function BookingsTable({ bookings }: { bookings: any[] }) {
             <input
               type="text"
               placeholder="Search bookings..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
@@ -182,14 +169,14 @@ function BookingsTable({ bookings }: { bookings: any[] }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {bookings.map((booking) => (
+            {filteredBookings.length > 0 ? filteredBookings.map((booking) => (
               <tr key={booking.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">
-                  <span className="font-medium text-purple-600">#BK{booking.id.toString().padStart(4, '0')}</span>
+                  <span className="font-medium text-purple-600">#{booking.id.substring(0, 8)}</span>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="font-medium text-gray-900">{booking.user}</div>
-                  <div className="text-sm text-gray-500">{booking.worker}</div>
+                  <div className="font-medium text-gray-900">{booking.user?.name || 'Unknown'}</div>
+                  <div className="text-sm text-gray-500">{booking.worker?.name || 'Unknown'}</div>
                 </td>
                 <td className="px-6 py-4">
                   <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
@@ -197,17 +184,16 @@ function BookingsTable({ bookings }: { bookings: any[] }) {
                   </span>
                 </td>
                 <td className="px-6 py-4">
-                  <div className="text-sm text-gray-900">{booking.startTime}</div>
-                  <div className="text-xs text-gray-500">Duration: {booking.duration}</div>
+                  <div className="text-sm text-gray-900">{formatDate(booking.date)}</div>
+                  <div className="text-xs text-gray-500">Time: {booking.timeSlot}</div>
                 </td>
-
                 <td className="px-6 py-4">
-                  <span className="font-bold text-green-600">₹{booking.amount}</span>
+                  <span className="font-bold text-green-600">₹{booking.totalAmount}</span>
                 </td>
                 <td className="px-6 py-4">
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    booking.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                    booking.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                    booking.status === 'completed' ? 'bg-green-100 text-green-800' :
+                    booking.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
                     'bg-yellow-100 text-yellow-800'
                   }`}>
                     {booking.status}
@@ -220,7 +206,13 @@ function BookingsTable({ bookings }: { bookings: any[] }) {
                   </button>
                 </td>
               </tr>
-            ))}
+            )) : (
+              <tr>
+                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  No bookings found
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -241,9 +233,11 @@ function StatCard({ title, value, icon: Icon, color, change }: {
         <div className={`p-3 rounded-xl bg-gradient-to-r ${color}`}>
           <Icon size={24} className="text-white" />
         </div>
-        <div className="text-right">
-          <div className="text-sm text-green-600 font-medium">{change}</div>
-        </div>
+        {change && (
+          <div className="text-right">
+            <div className="text-sm text-green-600 font-medium">{change}</div>
+          </div>
+        )}
       </div>
       <div className="text-3xl font-bold text-gray-900 mb-1">{value}</div>
       <div className="text-gray-600">{title}</div>

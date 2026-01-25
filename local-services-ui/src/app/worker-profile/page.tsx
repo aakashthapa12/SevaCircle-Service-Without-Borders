@@ -25,6 +25,20 @@ export default function WorkerProfilePage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"overview" | "bookings" | "earnings" | "orders">("orders");
   const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [workerData, setWorkerData] = useState({
+    name: "",
+    role: "",
+    rating: 0,
+    completedJobs: 0,
+    phone: "",
+    email: "",
+    location: "",
+    joinedDate: "",
+    hourlyRate: 0,
+    availability: "Available",
+    totalEarnings: 0
+  });
 
   // Load orders from localStorage
   useEffect(() => {
@@ -41,25 +55,55 @@ export default function WorkerProfilePage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Mock worker data - replace with actual API call
-  const workerData = {
-    name: "John Doe",
-    role: "Professional Plumber",
-    rating: 4.8,
-    completedJobs: 127,
-    phone: "+1 234 567 8900",
-    email: "john.doe@example.com",
-    location: "New York, NY",
-    joinedDate: "Jan 2024",
-    hourlyRate: 45,
-    availability: "Available",
-  };
+  // Fetch worker profile from backend
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const getCookie = (name: string) => {
+          const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+          return match ? decodeURIComponent(match[2]) : null;
+        };
 
-  const recentBookings = [
-    { id: 1, service: "Pipe Repair", client: "Alice Smith", date: "Jan 24, 2026", status: "Completed", amount: 120 },
-    { id: 2, service: "Drain Cleaning", client: "Bob Johnson", date: "Jan 23, 2026", status: "Completed", amount: 90 },
-    { id: 3, service: "Faucet Installation", client: "Carol White", date: "Jan 25, 2026", status: "Upcoming", amount: 75 },
-  ];
+        const token = getCookie('auth_token');
+        if (!token) {
+          router.push('/login');
+          return;
+        }
+
+        const res = await fetch('http://localhost:3001/auth/profile', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!res.ok) throw new Error('Failed to fetch profile');
+        
+        const data = await res.json();
+        
+        setWorkerData({
+          name: data.profile.name || "Worker",
+          role: data.profile.service || "Service Provider",
+          rating: data.profile.rating || 4.8,
+          completedJobs: data.profile.completedJobs || 0,
+          phone: data.profile.phone || "",
+          email: data.profile.email || "",
+          location: "Location",
+          joinedDate: "2024",
+          hourlyRate: 45,
+          availability: "Available",
+          totalEarnings: data.profile.totalEarnings || 0
+        });
+      } catch (error) {
+        console.error('Profile fetch error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [router]);
+
+  const recentBookings: any[] = [];
 
   const handleAcceptOrder = (orderId: string) => {
     const updatedOrders = orders.map(order => 
@@ -188,7 +232,7 @@ export default function WorkerProfilePage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm">Total Earnings</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">$5,430</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">${workerData.totalEarnings.toFixed(0)}</p>
               </div>
               <DollarSign size={40} className="text-green-500" />
             </div>
@@ -196,8 +240,8 @@ export default function WorkerProfilePage() {
           <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500 hover:shadow-lg transition">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Active Hours</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">342</p>
+                <p className="text-gray-600 text-sm">Rating</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{workerData.rating.toFixed(1)}</p>
               </div>
               <Clock size={40} className="text-purple-500" />
             </div>

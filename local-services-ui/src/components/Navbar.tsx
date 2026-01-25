@@ -10,28 +10,71 @@ export const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [userStats, setUserStats] = useState({
+    bookingsCount: 0,
+    totalSavings: 0,
+    membershipStatus: "Standard",
+    favoritesCount: 0
+  });
   const { language, setLanguage, t } = useLanguage();
+
+  const getCookie = (name: string) => {
+    if (typeof document === 'undefined') return null;
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? decodeURIComponent(match[2]) : null;
+  };
+
+  // Function to fetch user profile from backend
+  const fetchUserProfile = async () => {
+    const token = getCookie('auth_token');
+    if (!token) {
+      setIsLoggedIn(false);
+      setUserName("");
+      setUserEmail("");
+      return;
+    }
+
+    try {
+      const res = await fetch('http://localhost:3001/auth/profile', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!res.ok) throw new Error('Failed to fetch profile');
+      
+      const data = await res.json();
+      setIsLoggedIn(true);
+      setUserName(data.profile.name || "User");
+      setUserEmail(data.profile.email || "");
+      
+      if (data.role === 'user') {
+        setUserStats({
+          bookingsCount: data.profile.bookingsCount || 0,
+          totalSavings: data.profile.totalSavings || 0,
+          membershipStatus: data.profile.membershipStatus || "Standard",
+          favoritesCount: data.profile.favoritesCount || 0
+        });
+      }
+    } catch (error) {
+      console.error('Profile fetch error:', error);
+      setIsLoggedIn(false);
+      setUserName("");
+      setUserEmail("");
+    }
+  };
 
   // Function to check login status
   const checkLoginStatus = () => {
-    const userRole = localStorage.getItem("userRole");
-    const profile = localStorage.getItem("customerProfile");
-    
-    if (userRole === "user" || profile) {
-      setIsLoggedIn(true);
-      if (profile) {
-        try {
-          const parsedProfile = JSON.parse(profile);
-          setUserName(parsedProfile.name || "User");
-        } catch (e) {
-          setUserName("User");
-        }
-      } else {
-        setUserName("User");
-      }
+    const cookieToken = getCookie('auth_token');
+
+    if (cookieToken) {
+      fetchUserProfile();
     } else {
       setIsLoggedIn(false);
       setUserName("");
+      setUserEmail("");
     }
   };
 
@@ -63,8 +106,16 @@ export const Navbar = () => {
   }, []);
 
   const handleLogout = () => {
+    // Clear local storage
     localStorage.removeItem("userRole");
     localStorage.removeItem("customerProfile");
+
+    // Clear auth cookies
+    if (typeof document !== 'undefined') {
+      document.cookie = "auth_token=; Max-Age=0; path=/";
+      document.cookie = "role=; Max-Age=0; path=/";
+    }
+
     setIsLoggedIn(false);
     setShowProfileMenu(false);
     window.location.href = "/";
@@ -106,12 +157,18 @@ export const Navbar = () => {
             >
               Home
             </Link>
-            <Link
-              href="/search"
-              className="text-gray-700 hover:text-blue-600 transition-colors font-semibold text-lg"
+            <button
+              onClick={() => {
+                if (!isLoggedIn) {
+                  window.location.href = '/login';
+                } else {
+                  window.location.href = '/search';
+                }
+              }}
+              className="text-gray-700 hover:text-blue-600 transition-colors font-semibold text-lg cursor-pointer bg-transparent border-none"
             >
               Services
-            </Link>
+            </button>
             <Link
               href="/customer-profile"
               className="text-gray-700 hover:text-purple-600 transition-colors font-semibold text-lg"
@@ -181,10 +238,12 @@ export const Navbar = () => {
                     {/* Online status indicator */}
                     <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-400 border-2 border-white rounded-full animate-pulse"></div>
                     
-                    {/* Notification badge */}
-                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 border-2 border-white rounded-full flex items-center justify-center shadow-lg">
-                      <span className="text-[10px] font-bold text-white">3</span>
-                    </div>
+                    {/* Notification badge - only show if there are bookings */}
+                    {userStats.bookingsCount > 0 && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 border-2 border-white rounded-full flex items-center justify-center shadow-lg">
+                        <span className="text-[10px] font-bold text-white">{userStats.bookingsCount}</span>
+                      </div>
+                    )}
                   </button>
                   
                   {/* Enhanced Dropdown Menu */}
@@ -208,20 +267,20 @@ export const Navbar = () => {
                       {/* User info section */}
                       <div className="pt-10 px-6 pb-4 border-b-2 border-gray-100">
                         <h3 className="font-bold text-gray-900 text-lg">{userName}</h3>
-                        <p className="text-sm text-gray-600">customer@example.com</p>
+                        <p className="text-sm text-gray-600">{userEmail || "user@example.com"}</p>
                         
                         {/* Quick stats */}
                         <div className="grid grid-cols-3 gap-2 mt-4">
                           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-3 text-center border border-blue-100">
-                            <p className="text-xl font-black text-blue-600">12</p>
+                            <p className="text-xl font-black text-blue-600">{userStats.bookingsCount}</p>
                             <p className="text-xs text-gray-600 font-medium">Bookings</p>
                           </div>
                           <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-3 text-center border border-green-100">
-                            <p className="text-xl font-black text-green-600">₹2.4K</p>
+                            <p className="text-xl font-black text-green-600">₹{userStats.totalSavings.toFixed(1)}K</p>
                             <p className="text-xs text-gray-600 font-medium">Saved</p>
                           </div>
                           <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-3 text-center border border-purple-100">
-                            <p className="text-xl font-black text-purple-600">VIP</p>
+                            <p className="text-xl font-black text-purple-600">{userStats.membershipStatus}</p>
                             <p className="text-xs text-gray-600 font-medium">Status</p>
                           </div>
                         </div>
@@ -255,7 +314,9 @@ export const Navbar = () => {
                             <p className="font-semibold text-gray-900">My Bookings</p>
                             <p className="text-xs text-gray-500">Track your orders</p>
                           </div>
-                          <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</div>
+                          {userStats.bookingsCount > 0 && (
+                            <div className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold">{userStats.bookingsCount}</div>
+                          )}
                         </Link>
                         
                         <Link
@@ -346,13 +407,19 @@ export const Navbar = () => {
               >
                 Home
               </Link>
-              <Link
-                href="/search"
-                className="block text-gray-700 hover:text-orange-600 transition-colors font-medium py-2"
-                onClick={() => setIsOpen(false)}
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  if (!isLoggedIn) {
+                    window.location.href = '/login';
+                  } else {
+                    window.location.href = '/search';
+                  }
+                }}
+                className="block text-left w-full text-gray-700 hover:text-orange-600 transition-colors font-medium py-2 bg-transparent border-none cursor-pointer"
               >
                 Services
-              </Link>
+              </button>
               <Link
                 href="/customer-profile"
                 className="block text-gray-700 hover:text-purple-600 transition-colors font-medium py-2"

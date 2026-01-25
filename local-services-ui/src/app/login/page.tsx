@@ -142,22 +142,29 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      // TODO: call backend auth API based on role
-      await new Promise((r) => setTimeout(r, 600));
-      
-      // Store user role in localStorage
-      localStorage.setItem("userRole", role);
-      
-      // Trigger storage event manually for same-tab detection
-      window.dispatchEvent(new Event("storage"));
-      
-      if (role === "admin") {
+      const res = await fetch("http://localhost:3001/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!res.ok) throw new Error("Invalid credentials");
+      const data = await res.json();
+
+      // Save token in cookie and role
+      const token = data.accessToken as string;
+      const resolvedRole = (data.user?.role as string) || role;
+      document.cookie = `auth_token=${token}; Path=/; Max-Age=604800`;
+      document.cookie = `role=${resolvedRole}; Path=/; Max-Age=604800`;
+
+      if (resolvedRole === "admin") {
         router.push("/admin");
-      } else if (role === "worker") {
+      } else if (resolvedRole === "worker") {
         router.push("/worker-profile");
       } else {
         router.push("/search");
       }
+    } catch (e) {
+      alert((e as Error).message);
     } finally {
       setLoading(false);
     }

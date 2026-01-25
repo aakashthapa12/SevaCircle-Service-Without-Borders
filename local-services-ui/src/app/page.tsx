@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { ServiceCard } from "@/components/ServiceCard";
 import { WorkerCard } from "@/components/WorkerCard";
 import { services, serviceCategories, getServicesByCategory, getPopularServices } from "@/data/services";
@@ -11,9 +12,11 @@ import { useLanguage } from "@/context/LanguageContext";
 
 export default function Home() {
   const { t } = useLanguage();
+  const router = useRouter();
   const featuredWorkers = workers.slice(0, 3);
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const [particles, setParticles] = useState<Array<{left: number, top: number, delay: number, duration: number}>>([]);
+  const [isLogged, setIsLogged] = useState(false);
 
   // Filtering state - same as search page
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -75,6 +78,18 @@ export default function Home() {
       setParticles(newParticles);
     };
     generateParticles();
+  }, []);
+
+  useEffect(() => {
+    const getCookie = (name: string) => {
+      if (typeof document === 'undefined') return null;
+      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+      return match ? decodeURIComponent(match[2]) : null;
+    };
+    const check = () => setIsLogged(!!getCookie('auth_token'));
+    check();
+    const interval = setInterval(check, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -166,6 +181,14 @@ export default function Home() {
             <Link
               href="/search"
               className="group relative inline-flex items-center justify-center gap-4 bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 text-white px-16 py-6 rounded-3xl font-black text-2xl shadow-2xl hover:shadow-purple-500/30 transform hover:scale-110 transition-all duration-500 overflow-hidden min-w-[300px]"
+              onClick={(e) => {
+                e.preventDefault();
+                if (isLogged) {
+                  router.push('/search');
+                } else {
+                  router.push('/login?redirect=/search');
+                }
+              }}
             >
               {/* Animated Background */}
               <div className="absolute inset-0 bg-gradient-to-r from-purple-700 via-blue-700 to-teal-700 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>

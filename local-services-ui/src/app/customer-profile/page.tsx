@@ -56,6 +56,7 @@ export default function CustomerProfile() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [profileImage, setProfileImage] = useState<string>("");
   const [completionPercentage, setCompletionPercentage] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   // Calculate profile completion percentage
   useEffect(() => {
@@ -74,12 +75,59 @@ export default function CustomerProfile() {
   }, [profile]);
 
   useEffect(() => {
-    // Load existing profile from localStorage
-    const savedProfile = localStorage.getItem("customerProfile");
-    if (savedProfile) {
-      setProfile(JSON.parse(savedProfile));
-    }
-  }, []);
+    // Fetch user profile from backend
+    const fetchProfile = async () => {
+      try {
+        const getCookie = (name: string) => {
+          const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+          return match ? decodeURIComponent(match[2]) : null;
+        };
+
+        const token = getCookie('auth_token');
+        if (!token) {
+          router.push('/login');
+          return;
+        }
+
+        const res = await fetch('http://localhost:3001/auth/profile', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!res.ok) throw new Error('Failed to fetch profile');
+        
+        const data = await res.json();
+        
+        setProfile({
+          name: data.profile.name || "",
+          email: data.profile.email || "",
+          phone: data.profile.phone || "",
+          address: {
+            street: data.profile.street || "",
+            city: data.profile.city || "",
+            state: data.profile.state || "",
+            pincode: data.profile.pincode || "",
+            landmark: data.profile.landmark || ""
+          },
+          membershipStatus: data.profile.membershipStatus || "Standard",
+          totalSavings: data.profile.totalSavings || 0,
+          bookingsCount: data.profile.bookingsCount || 0,
+          favoritesCount: data.profile.favoritesCount || 0
+        } as any);
+      } catch (error) {
+        console.error('Profile fetch error:', error);
+        showToast({
+          title: "Failed to load profile",
+          tone: "error"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [router, showToast]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -108,16 +156,63 @@ export default function CustomerProfile() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (validateForm()) {
-      localStorage.setItem("customerProfile", JSON.stringify(profile));
-      showToast({
-        title: "Profile saved successfully!",
-        tone: "success"
-      });
-      setTimeout(() => router.push("/search"), 1500);
+      setLoading(true);
+      try {
+        const getCookie = (name: string) => {
+          const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+          return match ? decodeURIComponent(match[2]) : null;
+        };
+
+        const token = getCookie('auth_token');
+        if (!token) {
+          showToast({
+            title: "Authentication required",
+            tone: "error"
+          });
+          router.push('/login');
+          return;
+        }
+
+        const res = await fetch('http://localhost:3001/auth/profile', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            name: profile.name,
+            phone: profile.phone,
+            street: profile.address.street,
+            city: profile.address.city,
+            state: profile.address.state,
+            pincode: profile.address.pincode,
+            landmark: profile.address.landmark
+          })
+        });
+
+        if (!res.ok) throw new Error('Failed to update profile');
+
+        // Also keep in localStorage for backward compatibility
+        localStorage.setItem("customerProfile", JSON.stringify(profile));
+        
+        showToast({
+          title: "Profile saved successfully!",
+          tone: "success"
+        });
+        setTimeout(() => router.push("/search"), 1500);
+      } catch (error) {
+        console.error('Profile update error:', error);
+        showToast({
+          title: "Failed to update profile",
+          tone: "error"
+        });
+      } finally {
+        setLoading(false);
+      }
     } else {
       showToast({
         title: "Please fix the errors",
@@ -233,7 +328,7 @@ export default function CustomerProfile() {
               <div className="flex gap-3">
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 text-center border-2 border-blue-200 min-w-[100px]">
                   <Award className="text-blue-600 mx-auto mb-2" size={24} />
-                  <p className="text-2xl font-black text-blue-600">VIP</p>
+                  <p className="text-2xl font-black text-blue-600">{(profile as any).membershipStatus || "Standard"}</p>
                   <p className="text-xs text-gray-600 font-medium">Member</p>
                 </div>
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 text-center border-2 border-green-200 min-w-[100px]">

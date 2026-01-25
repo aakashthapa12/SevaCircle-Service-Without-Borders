@@ -10,48 +10,69 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
-model User {
-  id        String   @id @default(cuid())
-  phone     String   @unique
-  name      String
-  email     String?  @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-  bookings Booking[]
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  phone         String?   @unique
+  name          String?
+  email         String    @unique
+  passwordHash  String
+  totalSavings  Float     @default(0)
+  membershipStatus String @default("Standard")
+  favoritesCount Int      @default(0)
+  street        String?
+  city          String?
+  state         String?
+  pincode       String?
+  landmark      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  bookings      Booking[]
 
   @@map("users")
 }
 
 model Worker {
-  id           String   @id @default(cuid())
-  name         String
-  phone        String   @unique
-  email        String?  @unique
-  service      String
-  rating       Float    @default(4.5)
-  reviews      Int      @default(0)
-  experience   Int
-  languages    String   @default("English")
-  verified     Boolean  @default(false)
-  distance     Float    @default(0)
-  availability Boolean  @default(true)
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  name         String?
+  phone        String?   @unique
+  email        String    @unique
+  passwordHash String
+  service      String?
+  rating       Float     @default(4.5)
+  reviews      Int       @default(0)
+  experience   Int?
+  languages    String    @default("English")
+  verified     Boolean   @default(false)
+  distance     Float     @default(0)
+  availability Boolean   @default(true)
   image        String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  bookings Booking[]
+  totalEarnings Float    @default(0)
+  completedJobs Int      @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  bookings     Booking[]
 
   @@map("workers")
 }
 
+model Admin {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  email       String   @unique
+  firebaseUid String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("admins")
+}
+
 model Booking {
-  id        String   @id @default(cuid())
-  userId    String
-  workerId  String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  workerId  String   @db.ObjectId
   service   String
   date      DateTime
   timeSlot  String

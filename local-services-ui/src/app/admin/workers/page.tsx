@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { 
   UserCheck, 
   Activity,
@@ -13,76 +13,66 @@ import {
   Filter
 } from 'lucide-react'
 
-const mockWorkers = [
-  {
-    id: 1,
-    name: 'Rajesh Kumar',
-    service: 'Plumbing',
-    rating: 4.8,
-    completedJobs: 156,
-    earnings: 45600,
-    phone: '+91 9876543210',
-    experience: '12 years'
-  },
-  {
-    id: 2,
-    name: 'Amit Sharma',
-    service: 'Electrical',
-    rating: 4.9,
-    completedJobs: 142,
-    earnings: 52800,
-    phone: '+91 9876543211',
-    experience: '15 years'
-  },
-  {
-    id: 3,
-    name: 'Sunita Devi',
-    service: 'Cleaning',
-    rating: 4.7,
-    completedJobs: 89,
-    earnings: 28900,
-    phone: '+91 9876543212',
-    experience: '8 years'
-  },
-  {
-    id: 4,
-    name: 'Vikash Yadav',
-    service: 'Carpentry',
-    rating: 4.6,
-    completedJobs: 67,
-    earnings: 34500,
-    phone: '+91 9876543214',
-    experience: '6 years'
-  },
-  {
-    id: 5,
-    name: 'Rekha Sharma',
-    service: 'Painting',
-    rating: 4.8,
-    completedJobs: 78,
-    earnings: 38900,
-    phone: '+91 9876543215',
-    experience: '9 years'
-  },
-  {
-    id: 6,
-    name: 'Suresh Gupta',
-    service: 'Gardening',
-    rating: 4.5,
-    completedJobs: 45,
-    earnings: 22300,
-    phone: '+91 9876543216',
-    experience: '4 years'
-  }
-]
+type AdminWorker = { id: string; name: string | null; email: string; phone: string | null; service: string | null; createdAt: string }
+
+function useAdminWorkers() {
+  const [workers, setWorkers] = useState<AdminWorker[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const run = async () => {
+      try {
+        const res = await fetch('http://localhost:3001/admin/workers')
+        if (!res.ok) throw new Error(`Failed: ${res.status}`)
+        const data = await res.json()
+        setWorkers(data)
+      } catch (e: any) {
+        setError(e.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    run()
+  }, [])
+
+  return { workers, loading, error }
+}
 
 export default function WorkersPage() {
+  const { workers, loading, error } = useAdminWorkers()
+  const [stats, setStats] = useState({
+    totalWorkers: 0,
+    activeWorkers: 0,
+    avgRating: 0,
+    monthlyJobs: 0
+  })
+  const [statsLoading, setStatsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('http://localhost:3001/admin/workers/stats')
+        if (res.ok) {
+          const data = await res.json()
+          setStats(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch worker stats:', error)
+      } finally {
+        setStatsLoading(false)
+      }
+    }
+    fetchStats()
+  }, [])
+
   return (
     <div className="p-6 sm:p-8">
       <Header />
       <div className="space-y-6">
-        <WorkerStats />
-        <WorkersGrid workers={mockWorkers} />
+        <WorkerStats stats={stats} loading={statsLoading} />
+        {error && <div className="text-red-600">{error}</div>}
+        <WorkersGrid workers={workers} loading={loading} />
       </div>
     </div>
   )
@@ -99,63 +89,70 @@ function Header() {
   )
 }
 
-function WorkerStats() {
+function WorkerStats({ stats, loading }: { stats: any, loading: boolean }) {
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-white rounded-2xl shadow-xl p-6 h-32 animate-pulse"></div>
+        <div className="bg-white rounded-2xl shadow-xl p-6 h-32 animate-pulse"></div>
+        <div className="bg-white rounded-2xl shadow-xl p-6 h-32 animate-pulse"></div>
+        <div className="bg-white rounded-2xl shadow-xl p-6 h-32 animate-pulse"></div>
+      </div>
+    )
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
       <StatCard
         title="Total Workers"
-        value="89"
+        value={stats.totalWorkers}
         icon={UserCheck}
         color="from-teal-500 to-cyan-500"
-        change="+8%"
+        change=""
       />
       <StatCard
         title="Active Workers"
-        value="76"
+        value={stats.activeWorkers}
         icon={Activity}
         color="from-green-500 to-teal-500"
-        change="+12%"
+        change=""
       />
       <StatCard
         title="Avg Rating"
-        value="4.7/5"
+        value={`${stats.avgRating}/5`}
         icon={Star}
         color="from-yellow-500 to-orange-500"
-        change="+0.2"
+        change=""
       />
       <StatCard
         title="Monthly Jobs"
-        value="542"
+        value={stats.monthlyJobs}
         icon={Briefcase}
         color="from-purple-500 to-pink-500"
-        change="+18%"
+        change=""
       />
     </div>
   )
 }
 
-function WorkersGrid({ workers }: { workers: any[] }) {
+function WorkersGrid({ workers, loading }: { workers: any[]; loading: boolean }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-      {workers.map((worker) => (
+      {loading ? (
+        <div className="p-6">Loading...</div>
+      ) : workers.map((worker) => (
         <div key={worker.id} className="bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-all duration-300">
           <div className="text-center mb-6">
             <div className="w-20 h-20 bg-gradient-to-r from-teal-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">
-              {worker.name.split(' ').map((n: string) => n[0]).join('')}
+              {(worker.name || worker.email).split(' ').map((n: string) => n[0]).join('')}
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-1">{worker.name}</h3>
-            <p className="text-teal-600 font-medium mb-2">{worker.service}</p>
-            <div className="flex items-center justify-center gap-1">
-              <Star className="text-yellow-400 fill-current" size={16} />
-              <span className="font-medium">{worker.rating}</span>
-            </div>
+            <p className="text-teal-600 font-medium mb-2">{worker.service || '—'}</p>
           </div>
 
           <div className="space-y-4 mb-6">
-            <InfoRow icon={Briefcase} label="Jobs Completed" value={worker.completedJobs} />
-            <InfoRow icon={IndianRupee} label="Total Earnings" value={`₹${(worker.earnings / 1000).toFixed(0)}K`} valueColor="text-green-600" />
-            <InfoRow icon={Clock} label="Experience" value={worker.experience} />
-            <InfoRow icon={Phone} label="Contact" value={worker.phone} />
+            <InfoRow icon={Clock} label="Joined" value={new Date(worker.createdAt).toLocaleDateString()} />
+            <InfoRow icon={Phone} label="Contact" value={worker.phone || '—'} />
           </div>
 
           <button className="w-full bg-gradient-to-r from-teal-500 to-blue-500 text-white py-3 rounded-lg font-medium hover:shadow-lg transition-all duration-300">
@@ -197,9 +194,11 @@ function StatCard({ title, value, icon: Icon, color, change }: {
         <div className={`p-3 rounded-xl bg-gradient-to-r ${color}`}>
           <Icon size={24} className="text-white" />
         </div>
-        <div className="text-right">
-          <div className="text-sm text-green-600 font-medium">{change}</div>
-        </div>
+        {change && (
+          <div className="text-right">
+            <div className="text-sm text-green-600 font-medium">{change}</div>
+          </div>
+        )}
       </div>
       <div className="text-3xl font-bold text-gray-900 mb-1">{value}</div>
       <div className="text-gray-600">{title}</div>

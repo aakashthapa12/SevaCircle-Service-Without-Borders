@@ -24,110 +24,85 @@ import {
   IndianRupee
 } from 'lucide-react'
 
-// Mock data - In real app, this would come from your backend API
-const mockData = {
-  stats: {
-    totalUsers: 1247,
-    totalWorkers: 89,
-    totalServices: 12,
-    totalBookings: 3456,
-    activeBookings: 23,
-    completedBookings: 3433,
-    totalRevenue: 125600,
-    monthlyRevenue: 12800
-  },
-  trendingServices: [
-    { id: 1, name: 'Plumbing', bookings: 456, growth: '+12%', color: 'bg-blue-500' },
-    { id: 2, name: 'Electrical', bookings: 389, growth: '+8%', color: 'bg-purple-500' },
-    { id: 3, name: 'Cleaning', bookings: 334, growth: '+15%', color: 'bg-teal-500' },
-    { id: 4, name: 'Carpentry', bookings: 287, growth: '+5%', color: 'bg-indigo-500' },
-    { id: 5, name: 'Painting', bookings: 234, growth: '+18%', color: 'bg-cyan-500' }
-  ],
-  recentBookings: [
-    {
-      id: 1,
-      user: 'Rahul Sharma',
-      service: 'Plumbing',
-      worker: 'Rajesh Kumar',
-      time: '2026-01-25 10:30 AM',
-      status: 'Completed',
-      amount: 500
-    },
-    {
-      id: 2,
-      user: 'Priya Patel',
-      service: 'Electrical',
-      worker: 'Amit Sharma',
-      time: '2026-01-25 02:15 PM',
-      status: 'In Progress',
-      amount: 750
-    },
-    {
-      id: 3,
-      user: 'Manoj Singh',
-      service: 'Cleaning',
-      worker: 'Sunita Devi',
-      time: '2026-01-25 09:00 AM',
-      status: 'Completed',
-      amount: 300
-    },
-    {
-      id: 4,
-      user: 'Anita Gupta',
-      service: 'Carpentry',
-      worker: 'Vikash Yadav',
-      time: '2026-01-25 11:45 AM',
-      status: 'Scheduled',
-      amount: 1200
-    }
-  ],
-  topWorkers: [
-    {
-      id: 1,
-      name: 'Rajesh Kumar',
-      service: 'Plumbing',
-      rating: 4.8,
-      completedJobs: 156,
-      earnings: 45600,
-      phone: '+91 9876543210',
-      experience: '12 years'
-    },
-    {
-      id: 2,
-      name: 'Amit Sharma',
-      service: 'Electrical',
-      rating: 4.9,
-      completedJobs: 142,
-      earnings: 52800,
-      phone: '+91 9876543211',
-      experience: '15 years'
-    },
-    {
-      id: 3,
-      name: 'Sunita Devi',
-      service: 'Cleaning',
-      rating: 4.7,
-      completedJobs: 89,
-      earnings: 28900,
-      phone: '+91 9876543212',
-      experience: '8 years'
-    }
-  ],
-  userStats: [
-    { month: 'Jan', users: 120, workers: 8 },
-    { month: 'Feb', users: 180, workers: 12 },
-    { month: 'Mar', users: 250, workers: 15 },
-    { month: 'Apr', users: 320, workers: 18 },
-    { month: 'May', users: 420, workers: 22 },
-    { month: 'Jun', users: 520, workers: 28 }
-  ]
-}
-
 export default function AdminDashboard() {
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalWorkers: 0,
+    totalBookings: 0,
+    monthlyRevenue: 0
+  });
+  const [trendingServices, setTrendingServices] = useState<any[]>([]);
+  const [recentBookings, setRecentBookings] = useState<any[]>([]);
+  const [topWorkers, setTopWorkers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const getCookie = (name: string) => {
+          const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+          return match ? decodeURIComponent(match[2]) : null;
+        };
+
+        const token = getCookie('auth_token');
+
+        // Fetch stats
+        const statsRes = await fetch('http://localhost:3001/admin/dashboard/stats', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          setStats(statsData);
+        }
+
+        // Fetch trending services
+        const servicesRes = await fetch('http://localhost:3001/admin/dashboard/services', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (servicesRes.ok) {
+          const servicesData = await servicesRes.json();
+          setTrendingServices(servicesData);
+        }
+
+        // Fetch recent bookings
+        const bookingsRes = await fetch('http://localhost:3001/admin/dashboard/bookings/recent', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (bookingsRes.ok) {
+          const bookingsData = await bookingsRes.json();
+          setRecentBookings(bookingsData);
+        }
+
+        // Fetch top workers
+        const workersRes = await fetch('http://localhost:3001/admin/dashboard/workers/top', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (workersRes.ok) {
+          const workersData = await workersRes.json();
+          setTopWorkers(workersData);
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="p-6 sm:p-8 flex items-center justify-center min-h-screen">
+        <div className="text-xl">Loading dashboard...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 sm:p-8">
       <Header />
-      <OverviewTab data={mockData} />
+      <OverviewTab stats={stats} trendingServices={trendingServices} recentBookings={recentBookings} topWorkers={topWorkers} />
     </div>
   )
 }
@@ -144,38 +119,45 @@ function Header() {
 }
 
 // Overview Tab Component
-function OverviewTab({ data }: { data: any }) {
+function OverviewTab({ stats, trendingServices, recentBookings, topWorkers }: { 
+  stats: any; 
+  trendingServices: any[]; 
+  recentBookings: any[]; 
+  topWorkers: any[] 
+}) {
+  const serviceColors = ['bg-blue-500', 'bg-purple-500', 'bg-teal-500', 'bg-indigo-500', 'bg-cyan-500'];
+  
   return (
     <div className="space-y-8">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Users"
-          value={data.stats.totalUsers.toLocaleString()}
+          value={stats.totalUsers.toLocaleString()}
           icon={Users}
           color="from-blue-500 to-purple-500"
-          change="+12%"
+          change=""
         />
         <StatCard
           title="Total Workers"
-          value={data.stats.totalWorkers}
+          value={stats.totalWorkers}
           icon={UserCheck}
           color="from-teal-500 to-cyan-500"
-          change="+8%"
+          change=""
         />
         <StatCard
           title="Total Bookings"
-          value={data.stats.totalBookings.toLocaleString()}
+          value={stats.totalBookings.toLocaleString()}
           icon={Calendar}
           color="from-purple-500 to-pink-500"
-          change="+15%"
+          change=""
         />
         <StatCard
           title="Monthly Revenue"
-          value={`₹${(data.stats.monthlyRevenue / 1000).toFixed(0)}K`}
+          value={`₹${(stats.monthlyRevenue / 1000).toFixed(1)}K`}
           icon={IndianRupee}
           color="from-green-500 to-teal-500"
-          change="+22%"
+          change=""
         />
       </div>
 
@@ -188,18 +170,19 @@ function OverviewTab({ data }: { data: any }) {
             <TrendingUp className="text-green-500" size={24} />
           </div>
           <div className="space-y-4">
-            {data.trendingServices.map((service: any) => (
-              <div key={service.id} className="flex items-center justify-between">
+            {trendingServices.length > 0 ? trendingServices.map((service: any, index: number) => (
+              <div key={service.service} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full ${service.color}`}></div>
-                  <span className="font-medium text-gray-900">{service.name}</span>
+                  <div className={`w-3 h-3 rounded-full ${serviceColors[index % serviceColors.length]}`}></div>
+                  <span className="font-medium text-gray-900">{service.service}</span>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-gray-900">{service.bookings}</div>
-                  <div className="text-sm text-green-600">{service.growth}</div>
+                  <div className="font-bold text-gray-900">{service.count}</div>
                 </div>
               </div>
-            ))}
+            )) : (
+              <p className="text-gray-500 text-center py-4">No services data available</p>
+            )}
           </div>
         </div>
 
@@ -210,24 +193,26 @@ function OverviewTab({ data }: { data: any }) {
             <Activity className="text-blue-500" size={24} />
           </div>
           <div className="space-y-4">
-            {data.recentBookings.slice(0, 4).map((booking: any) => (
+            {recentBookings.length > 0 ? recentBookings.slice(0, 4).map((booking: any) => (
               <div key={booking.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
-                  <div className="font-medium text-gray-900">{booking.user}</div>
-                  <div className="text-sm text-gray-600">{booking.service} • {booking.worker}</div>
+                  <div className="font-medium text-gray-900">{booking.user?.name || 'Unknown User'}</div>
+                  <div className="text-sm text-gray-600">{booking.service} • {booking.worker?.name || 'Unknown Worker'}</div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-green-600">₹{booking.amount}</div>
+                  <div className="font-bold text-green-600">₹{booking.totalAmount}</div>
                   <div className={`text-xs px-2 py-1 rounded-full ${
-                    booking.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                    booking.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                    booking.status === 'completed' ? 'bg-green-100 text-green-800' :
+                    booking.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
                     'bg-yellow-100 text-yellow-800'
                   }`}>
                     {booking.status}
                   </div>
                 </div>
               </div>
-            ))}
+            )) : (
+              <p className="text-gray-500 text-center py-4">No recent bookings</p>
+            )}
           </div>
         </div>
       </div>
@@ -239,17 +224,17 @@ function OverviewTab({ data }: { data: any }) {
           <Award className="text-yellow-500" size={24} />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {data.topWorkers.map((worker: any) => (
+          {topWorkers.length > 0 ? topWorkers.map((worker: any) => (
             <div key={worker.id} className="p-6 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-100">
               <div className="text-center">
                 <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4">
-                  {worker.name.split(' ').map((n: string) => n[0]).join('')}
+                  {worker.name ? worker.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'W'}
                 </div>
-                <h4 className="font-bold text-gray-900 mb-1">{worker.name}</h4>
-                <p className="text-sm text-gray-600 mb-3">{worker.service}</p>
+                <h4 className="font-bold text-gray-900 mb-1">{worker.name || 'Unknown'}</h4>
+                <p className="text-sm text-gray-600 mb-3">{worker.service || 'Service'}</p>
                 <div className="flex items-center justify-center gap-1 mb-3">
                   <Star className="text-yellow-400 fill-current" size={16} />
-                  <span className="font-medium">{worker.rating}</span>
+                  <span className="font-medium">{worker.rating.toFixed(1)}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
@@ -257,13 +242,15 @@ function OverviewTab({ data }: { data: any }) {
                     <div className="text-gray-600">Jobs Done</div>
                   </div>
                   <div>
-                    <div className="font-bold text-green-600">₹{(worker.earnings / 1000).toFixed(0)}K</div>
+                    <div className="font-bold text-green-600">₹{(worker.totalEarnings / 1000).toFixed(0)}K</div>
                     <div className="text-gray-600">Earnings</div>
                   </div>
                 </div>
               </div>
             </div>
-          ))}
+          )) : (
+            <p className="text-gray-500 text-center py-4 col-span-3">No workers data available</p>
+          )}
         </div>
       </div>
     </div>
