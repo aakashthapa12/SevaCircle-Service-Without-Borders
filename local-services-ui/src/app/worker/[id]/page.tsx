@@ -64,7 +64,8 @@ export default function WorkerPage({ params }: WorkerPageProps) {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 via-purple-50 to-pink-50">
       {/* Header with back button */}
       <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b-2 border-gray-100 shadow-lg">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
+        {/* RootLayout provides the universal horizontal container */}
+        <div>
           <button
             onClick={() => router.back()}
             className="flex items-center gap-3 text-gray-700 hover:text-purple-600 font-bold py-6 transition-colors text-lg"
@@ -75,7 +76,7 @@ export default function WorkerPage({ params }: WorkerPageProps) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-12">
+      <div className="py-12">
         {/* Hero Image with Premium Overlays */}
         <div className="relative h-[500px] md:h-[500px] bg-gradient-to-br from-gray-200 to-gray-300 rounded-3xl overflow-hidden mb-12 shadow-2xl">
           <img
