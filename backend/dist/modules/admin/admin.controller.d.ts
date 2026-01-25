@@ -5,15 +5,15 @@ export declare class AdminController {
     listUsers(): Promise<{
         id: string;
         phone: string | null;
-        name: string | null;
         email: string;
+        name: string | null;
         createdAt: Date;
     }[]>;
     listWorkers(): Promise<{
         id: string;
         phone: string | null;
-        name: string | null;
         email: string;
+        name: string | null;
         createdAt: Date;
         service: string | null;
     }[]>;
@@ -29,12 +29,12 @@ export declare class AdminController {
     }[]>;
     getRecentBookings(): Promise<({
         user: {
-            name: string | null;
             email: string;
+            name: string | null;
         };
         worker: {
-            name: string | null;
             email: string;
+            name: string | null;
         };
     } & {
         id: string;
@@ -50,8 +50,8 @@ export declare class AdminController {
     })[]>;
     getTopWorkers(): Promise<{
         id: string;
-        name: string | null;
         email: string;
+        name: string | null;
         service: string | null;
         rating: number;
         totalEarnings: number;
@@ -65,12 +65,12 @@ export declare class AdminController {
     }>;
     getAllBookings(): Promise<({
         user: {
-            name: string | null;
             email: string;
+            name: string | null;
         };
         worker: {
-            name: string | null;
             email: string;
+            name: string | null;
         };
     } & {
         id: string;

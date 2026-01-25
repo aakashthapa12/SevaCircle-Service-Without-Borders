@@ -11,6 +11,7 @@ import {
   MapPin, 
   Save,
   ArrowLeft,
+  ArrowRight,
   Home,
   Building2,
   Navigation,
@@ -53,10 +54,58 @@ export default function CustomerProfile() {
     }
   });
 
+  const [profileMetadata, setProfileMetadata] = useState({
+    membershipType: "Premium",
+    joinedDate: new Date().toISOString(),
+    stats: {
+      bookings: 0,
+      savedAmount: 0,
+      rating: 0
+    },
+    profileImage: ""
+  });
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [profileImage, setProfileImage] = useState<string>("");
   const [completionPercentage, setCompletionPercentage] = useState(0);
-  const [loading, setLoading] = useState(true);
+
+  // Simulate database fetch
+  const fetchProfileFromDatabase = async () => {
+    try {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const savedProfile = localStorage.getItem("customerProfile");
+      const savedMetadata = localStorage.getItem("profileMetadata");
+      
+      if (savedProfile) {
+        const profileData = JSON.parse(savedProfile);
+        setProfile(profileData);
+        setProfileImage(profileData.profileImage || "");
+      }
+      
+      if (savedMetadata) {
+        const metadataData = JSON.parse(savedMetadata);
+        setProfileMetadata(metadataData);
+      } else {
+        // Set default metadata if not exists
+        const defaultMetadata = {
+          membershipType: "Premium",
+          joinedDate: new Date().toISOString(),
+          stats: {
+            bookings: Math.floor(Math.random() * 20) + 5,
+            savedAmount: Math.floor(Math.random() * 5000) + 1000,
+            rating: 4.5 + Math.random() * 0.5
+          },
+          profileImage: ""
+        };
+        setProfileMetadata(defaultMetadata);
+        localStorage.setItem("profileMetadata", JSON.stringify(defaultMetadata));
+      }
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
+    }
+  };
 
   // Calculate profile completion percentage
   useEffect(() => {
@@ -75,59 +124,16 @@ export default function CustomerProfile() {
   }, [profile]);
 
   useEffect(() => {
-    // Fetch user profile from backend
-    const fetchProfile = async () => {
-      try {
-        const getCookie = (name: string) => {
-          const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-          return match ? decodeURIComponent(match[2]) : null;
-        };
+    fetchProfileFromDatabase();
+  }, []);
 
-        const token = getCookie('auth_token');
-        if (!token) {
-          router.push('/login');
-          return;
-        }
-
-        const res = await fetch('http://localhost:3001/auth/profile', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (!res.ok) throw new Error('Failed to fetch profile');
-        
-        const data = await res.json();
-        
-        setProfile({
-          name: data.profile.name || "",
-          email: data.profile.email || "",
-          phone: data.profile.phone || "",
-          address: {
-            street: data.profile.street || "",
-            city: data.profile.city || "",
-            state: data.profile.state || "",
-            pincode: data.profile.pincode || "",
-            landmark: data.profile.landmark || ""
-          },
-          membershipStatus: data.profile.membershipStatus || "Standard",
-          totalSavings: data.profile.totalSavings || 0,
-          bookingsCount: data.profile.bookingsCount || 0,
-          favoritesCount: data.profile.favoritesCount || 0
-        } as any);
-      } catch (error) {
-        console.error('Profile fetch error:', error);
-        showToast({
-          title: "Failed to load profile",
-          tone: "error"
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, [router, showToast]);
+  useEffect(() => {
+    // Update metadata when profile changes
+    if (profileImage) {
+      setProfileMetadata(prev => ({ ...prev, profileImage }));
+      localStorage.setItem("profileMetadata", JSON.stringify({ ...profileMetadata, profileImage }));
+    }
+  }, [profileImage]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -156,63 +162,16 @@ export default function CustomerProfile() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (validateForm()) {
-      setLoading(true);
-      try {
-        const getCookie = (name: string) => {
-          const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-          return match ? decodeURIComponent(match[2]) : null;
-        };
-
-        const token = getCookie('auth_token');
-        if (!token) {
-          showToast({
-            title: "Authentication required",
-            tone: "error"
-          });
-          router.push('/login');
-          return;
-        }
-
-        const res = await fetch('http://localhost:3001/auth/profile', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            name: profile.name,
-            phone: profile.phone,
-            street: profile.address.street,
-            city: profile.address.city,
-            state: profile.address.state,
-            pincode: profile.address.pincode,
-            landmark: profile.address.landmark
-          })
-        });
-
-        if (!res.ok) throw new Error('Failed to update profile');
-
-        // Also keep in localStorage for backward compatibility
-        localStorage.setItem("customerProfile", JSON.stringify(profile));
-        
-        showToast({
-          title: "Profile saved successfully!",
-          tone: "success"
-        });
-        setTimeout(() => router.push("/search"), 1500);
-      } catch (error) {
-        console.error('Profile update error:', error);
-        showToast({
-          title: "Failed to update profile",
-          tone: "error"
-        });
-      } finally {
-        setLoading(false);
-      }
+      localStorage.setItem("customerProfile", JSON.stringify(profile));
+      showToast({
+        title: "Profile saved successfully!",
+        tone: "success"
+      });
+      setTimeout(() => router.push("/search"), 1500);
     } else {
       showToast({
         title: "Please fix the errors",
@@ -244,13 +203,10 @@ export default function CustomerProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 relative overflow-hidden w-full">
-      {/* Animated Background Blobs */}
-      <div className="absolute top-20 left-10 w-96 h-96 bg-purple-400/30 rounded-full blur-3xl animate-blob"></div>
-      <div className="absolute top-40 right-20 w-96 h-96 bg-pink-400/30 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
-      <div className="absolute -bottom-20 left-1/2 w-96 h-96 bg-blue-400/30 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Professional clean background */}
 
-      <div className="relative z-10 w-full max-w-[90rem] mx-auto px-[4%] sm:px-[6%] lg:px-[8%] py-[clamp(2rem,4vw,3rem)]">
+      <div className="w-full max-w-6xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="mb-8">
           <Link href="/search" className="inline-flex items-center gap-2 text-gray-600 hover:text-purple-600 transition-colors mb-6 group">
@@ -260,18 +216,19 @@ export default function CustomerProfile() {
             <span className="font-semibold">Back to Services</span>
           </Link>
           
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-white/50 p-8">
+          <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-              {/* Profile Image */}
+              {/* Profile Image with Glassy Effect */}
               <div className="relative group">
-                <div className="w-32 h-32 bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 rounded-3xl flex items-center justify-center shadow-2xl relative overflow-hidden">
+                <div className="w-32 h-32 bg-white/30 backdrop-blur-md border border-white/20 shadow-2xl rounded-full flex items-center justify-center relative overflow-hidden"
+                     style={{ backgroundColor: 'lab(66.9756% -58.27 19.5419)' }}>
                   {profileImage ? (
-                    <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+                    <img src={profileImage} alt="Profile" className="w-full h-full object-cover rounded-full" />
                   ) : (
                     <User className="text-white" size={56} />
                   )}
-                  {/* Upload overlay */}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                  {/* Glass overlay with hover effect */}
+                  <div className="absolute inset-0 bg-black/20 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer rounded-full">
                     <Camera className="text-white" size={32} />
                   </div>
                 </div>
@@ -293,15 +250,16 @@ export default function CustomerProfile() {
                 />
                 <label
                   htmlFor="profileImage"
-                  className="absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center cursor-pointer shadow-xl hover:scale-110 transition-transform"
+                  className="absolute -bottom-2 -right-2 w-8 h-8 bg-white/80 backdrop-blur-md border border-white/40 rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-white/90 transition-colors"
+                  style={{ backgroundColor: 'lab(66.9756% -58.27 19.5419)' }}
                 >
-                  <Camera className="text-white" size={18} />
+                  <Camera className="text-white" size={14} />
                 </label>
               </div>
               
               <div className="flex-1">
-                <h1 className="text-4xl font-black text-gray-900 mb-2">My Profile</h1>
-                <p className="text-gray-600 text-lg mb-4">Manage your personal information and preferences</p>
+                <h1 className="text-3xl font-semibold text-gray-900 mb-2">My Profile</h1>
+                <p className="text-gray-600 mb-4">Manage your personal information and preferences</p>
                 
                 {/* Profile Completion */}
                 <div className="space-y-2">
@@ -309,10 +267,13 @@ export default function CustomerProfile() {
                     <span className="font-semibold text-gray-700">Profile Completion</span>
                     <span className="font-bold text-purple-600">{completionPercentage}%</span>
                   </div>
-                  <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-full transition-all duration-500"
-                      style={{ width: `${completionPercentage}%` }}
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ 
+                        width: `${completionPercentage}%`,
+                        backgroundColor: 'lab(66.9756% -58.27 19.5419)'
+                      }}
                     ></div>
                   </div>
                   {completionPercentage === 100 && (
@@ -328,7 +289,7 @@ export default function CustomerProfile() {
               <div className="flex gap-3">
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 text-center border-2 border-blue-200 min-w-[100px]">
                   <Award className="text-blue-600 mx-auto mb-2" size={24} />
-                  <p className="text-2xl font-black text-blue-600">{(profile as any).membershipStatus || "Standard"}</p>
+                  <p className="text-2xl font-black text-blue-600">VIP</p>
                   <p className="text-xs text-gray-600 font-medium">Member</p>
                 </div>
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 text-center border-2 border-green-200 min-w-[100px]">
@@ -344,72 +305,64 @@ export default function CustomerProfile() {
         {/* Profile Form */}
         <form onSubmit={handleSubmit}>
           <div className="grid md:grid-cols-2 gap-6">
-            {/* Personal Information Card */}
-            <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-white/50 p-8 space-y-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <User className="text-white" size={24} />
+            {/* Personal Information Card with Glassy Effect */}
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-white/30 p-6 space-y-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-white/50 backdrop-blur-sm border border-white/30 rounded-lg flex items-center justify-center">
+                  <User style={{ color: 'lab(66.9756% -58.27 19.5419)' }} size={20} />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Personal Info</h2>
+                  <h2 className="text-xl font-semibold text-gray-900">Personal Information</h2>
                   <p className="text-sm text-gray-600">Your basic details</p>
                 </div>
               </div>
               
               <div className="space-y-5">
                 <div>
+                  <div className="flex items-center gap-2 mb-2">
                   <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <User size={16} className="text-purple-600" />
+                    <User size={16} style={{ color: 'lab(66.9756% -58.27 19.5419)' }} />
                     Full Name *
                   </label>
+                    <div className="ml-auto bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
+                      Read-only
+                    </div>
+                  </div>
                   <div className="relative group">
                     <input
                       type="text"
                       value={profile.name}
-                      onChange={(e) => handleInputChange("name", e.target.value)}
-                      className={`w-full px-4 py-4 bg-gradient-to-r from-gray-50 to-white border-2 ${errors.name ? 'border-red-400 animate-shake' : 'border-gray-200 focus:border-purple-500'} rounded-2xl focus:outline-none transition-all group-hover:shadow-md`}
+                      disabled
+                      className="w-full px-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:outline-none transition-all cursor-not-allowed text-gray-600"
                       placeholder="Enter your full name"
                     />
-                    {profile.name && !errors.name && (
-                      <CheckCircle size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-green-500" />
-                    )}
                   </div>
-                  {errors.name && (
-                    <div className="flex items-center gap-1 text-red-500 text-xs mt-1 animate-fade-in">
-                      <AlertCircle size={12} />
-                      <span>{errors.name}</span>
-                    </div>
-                  )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <Mail size={16} className="text-purple-600" />
-                    Email Address *
-                  </label>
+                  <div className="flex items-center gap-2 mb-2">
+                    <label className="block text-sm font-bold text-gray-700 flex items-center gap-2">
+                      <Mail size={16} style={{ color: 'lab(66.9756% -58.27 19.5419)' }} />
+                      Email Address *
+                    </label>
+                    <div className="ml-auto bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
+                      Read-only
+                    </div>
+                  </div>
                   <div className="relative group">
                     <input
                       type="email"
                       value={profile.email}
-                      onChange={(e) => handleInputChange("email", e.target.value)}
-                      className={`w-full px-4 py-4 bg-gradient-to-r from-gray-50 to-white border-2 ${errors.email ? 'border-red-400 animate-shake' : 'border-gray-200 focus:border-purple-500'} rounded-2xl focus:outline-none transition-all group-hover:shadow-md`}
+                      disabled
+                      className="w-full px-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:outline-none transition-all cursor-not-allowed text-gray-600"
                       placeholder="your.email@example.com"
                     />
-                    {profile.email && !errors.email && (
-                      <CheckCircle size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-green-500" />
-                    )}
                   </div>
-                  {errors.email && (
-                    <div className="flex items-center gap-1 text-red-500 text-xs mt-1 animate-fade-in">
-                      <AlertCircle size={12} />
-                      <span>{errors.email}</span>
-                    </div>
-                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <Phone size={16} className="text-purple-600" />
+                    <Phone size={16} style={{ color: 'lab(66.9756% -58.27 19.5419)' }} />
                     Phone Number *
                   </label>
                   <div className="relative group">
@@ -434,14 +387,14 @@ export default function CustomerProfile() {
               </div>
             </div>
 
-            {/* Address Information Card */}
-            <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-white/50 p-8 space-y-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <MapPin className="text-white" size={24} />
+            {/* Address Information Card with Glassy Effect */}
+            <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-white/30 p-6 space-y-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-white/50 backdrop-blur-sm border border-white/30 rounded-lg flex items-center justify-center">
+                  <MapPin style={{ color: 'lab(66.9756% -58.27 19.5419)' }} size={20} />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Address Details</h2>
+                  <h2 className="text-xl font-semibold text-gray-900">Address Details</h2>
                   <p className="text-sm text-gray-600">Where we'll reach you</p>
                 </div>
               </div>
@@ -449,7 +402,7 @@ export default function CustomerProfile() {
               <div className="space-y-5">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <Home size={16} className="text-purple-600" />
+                    <Home size={16} style={{ color: 'lab(66.9756% -58.27 19.5419)' }} />
                     Street Address *
                   </label>
                   <div className="relative group">
@@ -475,7 +428,7 @@ export default function CustomerProfile() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                      <Building2 size={16} className="text-purple-600" />
+                      <Building2 size={16} style={{ color: 'lab(66.9756% -58.27 19.5419)' }} />
                       City *
                     </label>
                     <div className="relative group">
@@ -500,7 +453,7 @@ export default function CustomerProfile() {
 
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                      <MapPin size={16} className="text-purple-600" />
+                      <MapPin size={16} style={{ color: 'lab(66.9756% -58.27 19.5419)' }} />
                       State *
                     </label>
                     <div className="relative group">
@@ -526,7 +479,7 @@ export default function CustomerProfile() {
 
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <Navigation size={16} className="text-purple-600" />
+                    <Navigation size={16} style={{ color: 'lab(66.9756% -58.27 19.5419)' }} />
                     Pincode *
                   </label>
                   <div className="relative group">
@@ -580,6 +533,47 @@ export default function CustomerProfile() {
             </button>
           </div>
         </form>
+
+        {/* Quick Actions */}
+        <div className="grid md:grid-cols-2 gap-6 mt-8">
+          <Link href="/bookings" className="group">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200 group-hover:border-gray-300">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                  <span className="text-gray-600 text-2xl">📋</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-gray-700 transition-colors">
+                    My Bookings
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    View and track your service bookings
+                  </p>
+                </div>
+                <ArrowRight className="text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all" size={20} />
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/payments" className="group">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200 group-hover:border-gray-300">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                  <span className="text-gray-600 text-2xl">💳</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-gray-700 transition-colors">
+                    Payment Methods
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    Manage your cards and payment options
+                  </p>
+                </div>
+                <ArrowRight className="text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all" size={20} />
+              </div>
+            </div>
+          </Link>
+        </div>
 
         {/* Info Card */}
         <div className="mt-6 bg-gradient-to-br from-blue-50 to-indigo-50 backdrop-blur-md border-2 border-blue-200 rounded-3xl p-6 shadow-xl">

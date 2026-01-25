@@ -19,6 +19,16 @@
 				"noop"
 			],
 			"isBackground": false
+		},
+		{
+			"label": "Build Next.js",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"build"
+			],
+			"isBackground": false
 		}
 	]
 }

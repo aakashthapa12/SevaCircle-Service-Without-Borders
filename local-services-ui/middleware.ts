@@ -3,13 +3,13 @@ import type { NextRequest } from 'next/server'
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
-  const token = req.cookies.get('auth_token')?.value
-  const role = req.cookies.get('role')?.value
+  const userRole = req.cookies.get('userRole')?.value
+  const isLoggedIn = req.cookies.get('isLoggedIn')?.value
 
-  console.log(`[Middleware] ${pathname} | Token: ${token ? 'YES' : 'NO'} | Role: ${role || 'NONE'}`)
+  console.log(`[Middleware] ${pathname} | LoggedIn: ${isLoggedIn ? 'YES' : 'NO'} | Role: ${userRole || 'NONE'}`)
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/', '/login', '/signup']
+  const publicRoutes = ['/', '/login', '/signup', '/about']
   const isPublicRoute = publicRoutes.includes(pathname) || pathname.startsWith('/_next') || pathname.startsWith('/api')
 
   // Allow public routes without authentication
@@ -19,10 +19,11 @@ export function middleware(req: NextRequest) {
   }
 
   // All other routes require authentication
-  if (!token) {
-    console.log(`[Middleware] ${pathname} -> REDIRECT to /login (no token)`)
+  if (!isLoggedIn || isLoggedIn !== 'true') {
+    console.log(`[Middleware] ${pathname} -> REDIRECT to /login (not authenticated)`)
     const url = req.nextUrl.clone()
     url.pathname = '/login'
+    url.searchParams.set('redirect', pathname)
     return NextResponse.redirect(url)
   }
 
@@ -33,7 +34,8 @@ export function middleware(req: NextRequest) {
 
   // Admin routes require admin role
   if (isAdminRoute) {
-    if (role !== 'admin') {
+    if (userRole !== 'admin') {
+      console.log(`[Middleware] ${pathname} -> REDIRECT to /login (admin required)`)
       const url = req.nextUrl.clone()
       url.pathname = '/login'
       return NextResponse.redirect(url)
@@ -41,22 +43,42 @@ export function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  // Role-based protection
-  if (userRoutes.some((p) => pathname.startsWith(p)) && role !== 'user') {
-    const url = req.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+  // User routes require user role
+  if (userRoutes.some((p) => pathname.startsWith(p))) {
+    if (userRole !== 'user') {
+      console.log(`[Middleware] ${pathname} -> REDIRECT to /login (user role required)`)
+      const url = req.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+    return NextResponse.next()
   }
 
-  if (workerRoutes.some((p) => pathname.startsWith(p)) && role !== 'worker') {
-    const url = req.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+  // Worker routes require service_provider role
+  if (workerRoutes.some((p) => pathname.startsWith(p))) {
+    if (userRole !== 'service_provider') {
+      console.log(`[Middleware] ${pathname} -> REDIRECT to /login (service_provider role required)`)
+      const url = req.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+    return NextResponse.next()
   }
 
+  // For any other protected route
+  console.log(`[Middleware] ${pathname} -> ALLOWED (authenticated)`)
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
 }

@@ -405,6 +405,20 @@ body {
   background: linear-gradient(135deg, rgb(var(--color-teal-500)), rgb(var(--color-blue-500)));
 }
 
+.text-gradient-primary {
+  background: linear-gradient(135deg, rgb(var(--color-teal-500)), rgb(var(--color-blue-500)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-light {
+  background: linear-gradient(135deg, rgb(var(--color-teal-200)), rgb(var(--color-blue-200)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .spacing-stack-xs > * + * {
   margin-top: var(--spacing-2);
 }
@@ -662,6 +676,23 @@ a:hover {
 @keyframes shimmer {
   0% { background-position: -150% 0; }
   100% { background-position: 150% 0; }
+}
+
+/* Animation delay utilities */
+.animate-delay-1s {
+  animation-delay: 1s;
+}
+
+.animate-delay-2s {
+  animation-delay: 2s;
+}
+
+.animate-delay-3s {
+  animation-delay: 3s;
+}
+
+.animate-delay-4s {
+  animation-delay: 4s;
 }
 
 /* subtle scale utility */
