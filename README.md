@@ -1,6 +1,6 @@
 # 🏠 SevaCircle — Service Without Borders
 
-A production-quality, hackathon-ready web application for booking local home services (plumbing, electrical, carpentry, painting, mechanic, cleaning).
+A production-quality, hackathon-ready web application for booking local home services (plumbing, electrical, carpentry, painting, mechanic, cleaning, any services etc).
 
 **Status**: ✨ **FULLY OPERATIONAL** - All services running without errors
 
