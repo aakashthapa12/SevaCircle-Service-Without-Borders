@@ -1,4 +1,4 @@
-# 🏠 Local Services Booking Platform
+# 🏠 SevaCircle — Service Without Borders
 
 A production-quality, hackathon-ready web application for booking local home services (plumbing, electrical, carpentry, painting, mechanic, cleaning).
 
