@@ -1,0 +1,11 @@
+
+> sevacircle-server@2.0.0 dev
+> tsx watch src/index.ts
+
+✅ Database initialized
+
+🚀 Server running on http://localhost:3001
+📋 API Documentation: http://localhost:3001
+💚 Health Check: http://localhost:3001/api/health
+
+10:11:57 PM [tsx] Previous process hasn't exited yet. Force killing...

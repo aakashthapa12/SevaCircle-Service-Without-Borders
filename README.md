@@ -1,16 +1,8 @@
-## 🚀 Front Page Preview
-
-<img src="frontend/public/images/1.png" width="800" />
-<img src="frontend/public/images/2.png" width="800" />
-<img src="frontend/public/images/3.png" width="800" />
-
----
-
 # 🏠 SevaCircle — Service Without Borders
 
-A production-quality, hackathon-ready web application for booking local home services (plumbing, electrical, carpentry, painting, mechanic, cleaning, any services etc).
+A production-quality web application for booking local home services with **AI-powered chatbot assistance** using Groq's ultra-fast LPU inference.
 
-**Status**: ✨ **FULLY OPERATIONAL** - All services running without errors
+**Status**: ✨ **FULLY OPERATIONAL** - All services running with AI integration
 
 ---
 
@@ -18,162 +10,314 @@ A production-quality, hackathon-ready web application for booking local home ser
 
 | Component | Status | URL |
 |-----------|--------|-----|
-| **Frontend** | ✅ Running | http://localhost:3000 |
-| **Backend** | ✅ Running | http://localhost:3001 |
+| **Frontend (Client)** | ✅ Running | http://localhost:5173 |
+| **Backend (Server)** | ✅ Running | http://localhost:3001 |
+| **AI Chat (Groq)** | ✅ Operational | http://localhost:3001/api/chat |
 | **Health Check** | ✅ Available | http://localhost:3001/api/health |
-| **Database** | ⚠️ Optional | Not required for demo |
+| **Database** | ✅ LowDB | JSON-based (demo-ready) |
+
+---
+
+## ✨ Key Features
+
+🤖 **AI-Powered Chatbot** - Smart assistant using Groq's Llama 3.3-70b-versatile model
+🔍 **Service Discovery** - Browse and search local service providers
+👷 **Worker Profiles** - Detailed profiles with ratings and reviews
+📅 **Smart Booking** - Easy scheduling with real-time availability
+💬 **Multilingual** - Support for English, Hindi, and Marathi
+🎨 **Modern UI** - Responsive design with Tailwind CSS
+🔐 **Authentication Ready** - User and worker login system
+📊 **Admin Dashboard** - Manage bookings and workers
 
 ---
 
 ## 🚀 Quick Start
 
-### Easiest Way (One Click)
+### Prerequisites
+- Node.js (v18 or higher)
+- npm or yarn
+- Groq API Key (free at https://console.groq.com/keys)
+
+### Step 1: Install Dependencies
 ```bash
-Double-click: start-dev.bat
+# Install backend dependencies
+cd server
+npm install
+
+# Install frontend dependencies
+cd ../client
+npm install
 ```
 
-This opens two terminal windows:
-- Backend server on port 3001
-- Frontend server on port 3000
+### Step 2: Configure Environment Variables
+Create a `.env` file in the `server` directory:
 
-### Manual Start (Two Terminals)
+```env
+PORT=3001
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
+NODE_ENV=development
+GROQ_API_KEY=your_groq_api_key_here
+```
+
+**Get your FREE Groq API Key:**
+1. Visit https://console.groq.com/keys
+2. Sign up with Google/GitHub
+3. Create a new API key
+4. Copy and paste it in the `.env` file
+
+### Step 3: Start the Application
+
+**Option A: Manual Start (Recommended)**
 ```bash
-# Terminal 1 - Backend
-cd backend
-npm run start
+# Terminal 1 - Start Backend
+cd server
+npm run dev
 
-# Terminal 2 - Frontend  
-cd local-services-ui
+# Terminal 2 - Start Frontend
+cd client
 npm run dev
 ```
 
+**Option B: Background Process**
+```bash
+# From project root
+(cd server && npm run dev &)
+(cd client && npm run dev &)
+```
+
+### Step 4: Access the Application
+- **Frontend**: http://localhost:5173
+- **Backend API**: http://localhost:3001
+- **Health Check**: http://localhost:3001/api/health
+- **AI Chat**: Click "Chat" in the navbar
+
 ### Check Service Status
 ```bash
-node check-health.js
+# Test backend
+curl http://localhost:3001/api/health
+
+# Test AI chat
+curl -X POST http://localhost:3001/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "What services do you offer?", "conversationHistory": []}'
 ```
 
 ---
 
-## 📋 Configuration Required
+## 🤖 AI Chat Integration (Groq)
+
+### Features
+- **Smart Service Recommendations** - AI suggests the best workers based on your needs
+- **Context-Aware Responses** - Knows about all available services and workers
+- **Follow-up Suggestions** - Provides helpful next questions
+- **Conversational Memory** - Maintains conversation history
+- **Ultra-Fast Responses** - Powered by Groq's LPU technology (~1-2 seconds)
+
+### How It Works
+1. User asks a question via the chat interface
+2. Backend loads current services and workers from database
+3. Groq AI (Llama 3.3-70b-versatile) generates contextual response
+4. Response includes helpful follow-up suggestions
+5. Frontend displays the conversation with a clean UI
+
+### API Endpoints
+
+**Welcome Message**
+```bash
+GET /api/chat/welcome
+```
+
+**Send Chat Message**
+```bash
+POST /api/chat
+Content-Type: application/json
+
+{
+  "message": "What services do you offer?",
+  "conversationHistory": [
+    {"role": "user", "content": "previous message"},
+    {"role": "assistant", "content": "previous response"}
+  ]
+}
+```
+
+**Response Format**
+```json
+{
+  "success": true,
+  "data": {
+    "response": "AI-generated response...",
+    "suggestions": ["Follow-up 1", "Follow-up 2", "Follow-up 3"],
+    "timestamp": "2026-02-21T17:41:26.608Z"
+  }
+}
+```
+
+### Configuration
+The Groq integration is configured in `server/src/services/groq.ts`:
+- **Model**: llama-3.3-70b-versatile (main chat)
+- **Fallback Model**: llama-3.1-8b-instant (suggestions)
+- **Temperature**: 0.7 (balanced creativity)
+- **Max Tokens**: 500 (~375 words)
+- **Context**: Last 5 messages + current platform data
+
+### Security & Privacy
+✅ API key stored in environment variables
+✅ Only service metadata sent to Groq (no personal data)
+✅ No user information or booking details shared
+✅ Rate limiting ready for production
+
+---
+
+## 📋 Configuration
 
 ### Backend Configuration
-**File**: `backend/.env`
+**File**: `server/.env`
 ```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/local_services_db"
-NODE_ENV="development"
 PORT=3001
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
+NODE_ENV=development
+GROQ_API_KEY=your_groq_api_key_here
 ```
 
 **What This Means**:
-- `DATABASE_URL`: PostgreSQL connection (optional for hackathon)
-- `NODE_ENV`: Development mode enables hot reload
 - `PORT`: Backend runs on port 3001
+- `JWT_SECRET`: Secret key for authentication tokens
+- `NODE_ENV`: Development mode enables hot reload
+- `GROQ_API_KEY`: API key for Groq AI service (required)
 
 **To Change**:
-1. Edit `backend/.env`
-2. Run: `cd backend && npx prisma generate && npm run build`
-3. Restart backend: `npm run start`
+1. Edit `server/.env`
+2. Restart backend: `cd server && npm run dev`
 
-### Frontend Configuration (Optional)
-**File**: `local-services-ui/.env.local` (create if needed)
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
+### Frontend Configuration
+The frontend is configured via `client/vite.config.ts`:
+```typescript
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true
+      }
+    }
+  }
+})
 ```
+
+This automatically proxies all `/api` requests to the backend server.
 
 ---
 
-## 💾 Database Setup (Optional)
+## 💾 Database
 
-For a hackathon demo, the database is **not required**. The backend works fine without it.
+The application uses **LowDB** (JSON-based database) for easy demo deployment:
+- No installation required
+- Data stored in `server/database.json`
+- Includes mock data for 6 services and 8 workers
+- Perfect for hackathons and demos
 
-**If you want to add PostgreSQL**:
+### Data Structure
+```json
+{
+  "services": [
+    { "id": "1", "name": "Plumbing", "category": "Home Services", ... }
+  ],
+  "workers": [
+    { "id": "1", "name": "Rajesh Kumar", "service": "Plumbing", ... }
+  ],
+  "users": [],
+  "bookings": []
+}
+```
 
-1. **Download PostgreSQL**: https://www.postgresql.org/download/
-   - Default port: 5432
-   - Default user: postgres
+### Mock Data Included
+- **6 Services**: Plumbing, Electrical, Carpentry, Painting, Vehicle Maintenance, Cleaning
+- **8 Workers**: Realistic profiles with ratings (4.5-4.9⭐), experience, languages
+- **Locations**: Delhi, Mumbai, Bangalore regions
 
-2. **Create Database**:
-   ```bash
-   psql -U postgres
-   CREATE DATABASE local_services_db;
-   \q
-   ```
-
-3. **Update .env**:
-   ```env
-   DATABASE_URL="postgresql://postgres:your_password@localhost:5432/local_services_db"
-   ```
-
-4. **Run Migrations**:
-   ```bash
-   cd backend
-   npx prisma migrate dev --name init
-   ```
-
-The app will then use real data from PostgreSQL instead of mock data.
+**To modify data**: Edit `server/database.json` directly or use the API endpoints.
 
 ---
 
 ## 🏗️ Project Structure
 
 ```
-DUHACks/
+DUHacks-Hackthon/
 │
-├── backend/                          NestJS API Server
+├── server/                          Express + TypeScript Backend
 │   ├── src/
-│   │   ├── main.ts                  Entry point with validation & CORS
-│   │   ├── app.module.ts            Root module with all imports
-│   │   ├── app.controller.ts        Root API endpoint
-│   │   ├── prisma/                  Database service & module
-│   │   ├── modules/
-│   │   │   ├── auth/                Authentication (ready for implementation)
-│   │   │   ├── users/               User management
-│   │   │   ├── workers/             Worker profiles
-│   │   │   ├── bookings/            Booking management
-│   │   │   └── admin/               Admin features
-│   │   ├── health/                  Health check endpoint
-│   │   ├── common/                  Shared utilities
-│   │   │   ├── decorators/
-│   │   │   ├── guards/
-│   │   │   ├── filters/
-│   │   │   └── interceptors/
-│   │   └── config/                  Environment configuration
-│   ├── prisma/
-│   │   └── schema.prisma            Database models
-│   ├── .env                         Configuration file
+│   │   ├── index.ts                Entry point with CORS & middleware
+│   │   ├── database.ts             LowDB initialization
+│   │   ├── routes/
+│   │   │   ├── auth.ts             Authentication routes
+│   │   │   ├── services.ts         Service endpoints
+│   │   │   ├── workers.ts          Worker management
+│   │   │   ├── bookings.ts         Booking system
+│   │   │   └── chat.ts             AI chat endpoints ⚡
+│   │   ├── services/
+│   │   │   └── groq.ts             Groq AI integration 🤖
+│   │   └── middleware/
+│   │       └── auth.ts             JWT authentication
+│   ├── database.json               JSON database (LowDB)
+│   ├── .env                        Configuration (Groq API key)
 │   ├── package.json
-│   └── README.md
+│   └── test-groq.ts                Groq API test script
 │
-├── local-services-ui/               Next.js Frontend
+├── client/                          React + Vite Frontend
 │   ├── src/
-│   │   ├── app/
-│   │   │   ├── page.tsx            Home page
-│   │   │   ├── login/              Login page
-│   │   │   ├── search/             Search workers
-│   │   │   ├── worker/[id]/        Worker profile
-│   │   │   ├── booking/            Booking flow
-│   │   │   └── layout.tsx          Root layout
+│   │   ├── App.tsx                 Main app component
+│   │   ├── main.tsx                Entry point
+│   │   ├── pages/
+│   │   │   ├── Home.tsx            Landing page
+│   │   │   ├── Services.tsx        Service listings
+│   │   │   ├── Workers.tsx         Worker directory
+│   │   │   ├── WorkerDetail.tsx    Worker profile
+│   │   │   ├── Booking.tsx         Booking flow
+│   │   │   ├── Chat.tsx            AI chatbot interface 💬
+│   │   │   ├── Login.tsx           User authentication
+│   │   │   ├── Register.tsx        User registration
+│   │   │   ├── MyBookings.tsx      User bookings
+│   │   │   └── AdminDashboard.tsx  Admin panel
 │   │   ├── components/
-│   │   │   ├── Navbar.tsx          Top navigation
-│   │   │   ├── Footer.tsx          Footer
+│   │   │   ├── Navbar.tsx          Navigation bar
+│   │   │   ├── Footer.tsx          Footer component
 │   │   │   ├── ServiceCard.tsx     Service display
 │   │   │   ├── WorkerCard.tsx      Worker card
-│   │   │   └── Toast.tsx           Notifications
+│   │   │   └── ProtectedRoute.tsx  Auth guard
 │   │   ├── context/
-│   │   │   └── LanguageContext.tsx Language support (En/Hi/Mr)
-│   │   ├── data/
-│   │   │   ├── services.ts         Mock services
-│   │   │   └── workers.ts          Mock workers
-│   │   └── app/globals.css         Tailwind styling
+│   │   │   └── AuthContext.tsx     Authentication state
+│   │   ├── services/
+│   │   │   └── api.ts              API client (Axios)
+│   │   └── index.css               Tailwind CSS
 │   ├── package.json
-│   └── README.md
+│   └── vite.config.ts              Vite configuration
 │
-├── CONFIGURATION.md                 Detailed setup guide
-├── QUICK_SETUP.md                   Quick reference
-├── start-dev.bat                    Auto-start both services
-├── check-health.js                  Service health check
-└── README.md                        This file
+├── backend/                         NestJS Backend (Alternative)
+│   └── [NestJS structure for future use]
+│
+├── frontend/                        Next.js Frontend (Alternative)
+│   └── [Next.js structure for future use]
+│
+├── GROQ_COMPLETE_REPORT.md         Detailed AI integration docs
+├── GROQ_QUICKSTART.md              Quick AI setup guide
+├── AI_STATUS.md                    AI feature documentation
+├── CURRENT_STATUS.txt              System status
+├── check-health.js                 Health check script
+└── README.md                       This file
 ```
+
+### Active Stack (Currently Running)
+- **Backend**: Express + TypeScript (`server/`)
+- **Frontend**: React + Vite (`client/`)
+- **AI**: Groq API (Llama 3.3-70b-versatile)
+- **Database**: LowDB (JSON-based)
+
+### Alternative Stacks (Available)
+- **Backend**: NestJS (`backend/`) - Production-grade
+- **Frontend**: Next.js (`frontend/`) - SSR support
 
 ---
 
@@ -181,56 +325,144 @@ DUHACks/
 
 ### Pages Available
 - ✅ **Home** (`/`) - Hero section, service grid, featured workers
-- ✅ **Search** (`/search?service=X`) - Filter workers by service
-- ✅ **Worker Profile** (`/worker/[id]`) - Full worker details
-- ✅ **Booking** (`/booking`) - Date/time selection, price breakdown
-- ✅ **Login** (`/login`) - OTP flow demo
+- ✅ **Services** (`/services`) - Browse all available services
+- ✅ **Workers** (`/workers`) - Worker directory with filters
+- ✅ **Worker Profile** (`/worker/:id`) - Detailed worker information
+- ✅ **Booking** (`/booking`) - Service booking flow
+- ✅ **Chat** (`/chat`) - AI-powered assistant 🤖
+- ✅ **Login** (`/login`) - User authentication
+- ✅ **Register** (`/register`) - New user signup
+- ✅ **My Bookings** (`/my-bookings`) - User booking history
+- ✅ **Admin Dashboard** (`/admin`) - Admin management panel
 
-### Languages Supported
-- 🇬🇧 English
-- 🇮🇳 हिंदी (Hindi)
-- 🇮🇳 मराठी (Marathi)
+### UI Components
+- **Navbar** - Responsive navigation with mobile menu
+- **ServiceCard** - Interactive service displays
+- **WorkerCard** - Worker profile cards with ratings
+- **Footer** - Contact information and links
+- **ProtectedRoute** - Authentication guard for private pages
 
-Select language from navbar (top-right corner)
+### Technologies
+- **React 18** - Modern React with hooks
+- **React Router 6** - Client-side routing
+- **Axios** - HTTP client for API calls
+- **Tailwind CSS** - Utility-first CSS framework
+- **Lucide React** - Beautiful icon library
+- **Vite** - Fast build tool and dev server
 
 ### Mock Data
+The frontend uses API data from the backend, which includes:
 - **6 Services**: Plumber, Electrician, Carpenter, Painter, Mechanic, Cleaner
-- **8 Workers**: Realistic profiles with ratings, experience, languages
+- **8 Workers**: Realistic profiles with ratings (4.5-4.9⭐), experience, languages
+- **Sample Bookings**: Demo booking flow with price calculations
 
 ---
 
 ## 🔧 Backend Features
 
 ### API Endpoints
-| Endpoint | Method | Response |
-|----------|--------|----------|
-| `/` | GET | API info |
-| `/api/health` | GET | Service status |
+
+#### General
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | API information |
+| `/api/health` | GET | Health check |
+
+#### Authentication
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/auth/register` | POST | User registration |
+| `/api/auth/login` | POST | User login |
+
+#### Services
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/services` | GET | List all services |
+| `/api/services/:id` | GET | Get service details |
+
+#### Workers
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/workers` | GET | List all workers |
+| `/api/workers/:id` | GET | Get worker details |
+
+#### Bookings
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/bookings` | POST | Create booking |
+| `/api/bookings/my-bookings` | GET | User's bookings |
+| `/api/bookings/all` | GET | All bookings (admin) |
+| `/api/bookings/:id/status` | PATCH | Update booking status |
+
+#### AI Chat 🤖
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/chat/welcome` | GET | Welcome message |
+| `/api/chat` | POST | Send chat message |
 
 ### Architecture
-- ✅ **NestJS** - Enterprise Node.js framework
+- ✅ **Express.js** - Fast, minimalist web framework
 - ✅ **TypeScript** - Full type safety
-- ✅ **Prisma** - Database ORM with migrations
-- ✅ **Class Validator** - Input validation
-- ✅ **CORS** - Cross-origin enabled
-- ✅ **Global Pipes** - Request validation
-- ✅ **Modular Structure** - Clean separation of concerns
+- ✅ **LowDB** - JSON-based database for easy demos
+- ✅ **Groq SDK** - AI integration with ultra-fast inference
+- ✅ **Zod** - Schema validation for API requests
+- ✅ **JWT** - Secure authentication tokens
+- ✅ **CORS** - Cross-origin resource sharing enabled
+- ✅ **bcryptjs** - Password hashing
 
-### Database Models
-```prisma
-User {
-  id, phone, name, email, bookings, createdAt, updatedAt
+### Database Schema (LowDB)
+```typescript
+interface Database {
+  services: Service[];
+  workers: Worker[];
+  users: User[];
+  bookings: Booking[];
 }
 
-Worker {
-  id, name, phone, email, service, rating, reviews,
-  experience, languages, verified, distance, availability,
-  image, bookings, createdAt, updatedAt
+interface Service {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  basePrice: number;
+  icon: string;
 }
 
-Booking {
-  id, userId, workerId, service, date, timeSlot,
-  status, totalAmount, user, worker, createdAt, updatedAt
+interface Worker {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  service: string;
+  rating: number;
+  totalReviews: number;
+  experience: number;
+  languages: string[];
+  verified: boolean;
+  distance: string;
+  availability: string;
+  specialization?: string;
+  image: string;
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  role: 'user' | 'worker' | 'admin';
+}
+
+interface Booking {
+  id: string;
+  userId: string;
+  workerId: string;
+  service: string;
+  date: string;
+  timeSlot: string;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  totalAmount: number;
 }
 ```
 
@@ -238,15 +470,251 @@ Booking {
 
 ## 🎯 What's Configured
 
-✅ **Authentication Ready**
-- OTP login UI implemented
-- Ready for JWT implementation
-- Guards structure in place
+✅ **AI Chatbot**
+- Groq API integration with Llama 3.3-70b-versatile
+- Context-aware responses using platform data
+- Conversation history management
+- Follow-up suggestions generation
+- Ultra-fast inference (~1-2 seconds)
 
-✅ **Validation Ready**
-- Global pipes configured
-- Class validators installed
-- Input sanitization setup
+✅ **Authentication System**
+- User registration and login
+- JWT token-based authentication
+- Password hashing with bcryptjs
+- Protected routes on frontend
+- Auth middleware on backend
+
+✅ **Booking System**
+- Service selection and scheduling
+- Worker assignment
+- Price calculation
+- Status tracking (pending, confirmed, completed, cancelled)
+- User booking history
+
+✅ **Admin Features**
+- View all bookings
+- Update booking status
+- Worker management
+- Service management
+
+✅ **API Validation**
+- Zod schema validation for all requests
+- Type-safe error handling
+- Input sanitization
+
+✅ **Cross-Origin Support**
+- CORS enabled for frontend-backend communication
+- Proxy configuration in Vite
+
+---
+
+## 🐛 Troubleshooting
+
+### Backend Issues
+
+**Port 3001 already in use**
+```bash
+# Kill existing process
+lsof -ti:3001 | xargs kill -9
+
+# Or use a different port
+# Edit server/.env: PORT=3002
+```
+
+**Groq API Error: "Invalid API key"**
+```bash
+# Check if .env file exists
+cat server/.env | grep GROQ_API_KEY
+
+# Verify API key is valid at:
+# https://console.groq.com/keys
+
+# Test API key
+cd server && npx tsx test-groq.ts
+```
+
+**Groq API Error: "Model decommissioned"**
+```bash
+# This is already fixed in the code
+# Current model: llama-3.3-70b-versatile
+# If you see this error, update server/src/services/groq.ts
+```
+
+**Database not initializing**
+```bash
+# Check if database.json exists
+ls -la server/database.json
+
+# If missing, the server will create it automatically
+# Or copy from server/database.json.example if available
+```
+
+### Frontend Issues
+
+**Port 5173 already in use**
+```bash
+# Kill existing process
+pkill -f vite
+
+# Or edit client/vite.config.ts to use a different port
+```
+
+**API calls failing (Network Error)**
+```bash
+# Check if backend is running
+curl http://localhost:3001/api/health
+
+# Check proxy configuration in client/vite.config.ts
+# Should proxy /api to http://localhost:3001
+```
+
+**Chat not working**
+```bash
+# Test backend health
+curl http://localhost:3001/api/health
+
+# Test chat endpoint
+curl -X POST http://localhost:3001/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "test", "conversationHistory": []}'
+
+# Check browser console for errors
+```
+
+### General Issues
+
+**Dependencies not installing**
+```bash
+# Clear npm cache
+npm cache clean --force
+
+# Delete node_modules and reinstall
+rm -rf server/node_modules client/node_modules
+cd server && npm install
+cd ../client && npm install
+```
+
+**TypeScript errors**
+```bash
+# Rebuild TypeScript
+cd server && npm run build
+cd client && npm run build
+```
+
+---
+
+## 🚀 Deployment
+
+### Backend Deployment (Example: Heroku)
+
+1. **Create Heroku app**
+```bash
+heroku create sevacircle-api
+```
+
+2. **Set environment variables**
+```bash
+heroku config:set NODE_ENV=production
+heroku config:set JWT_SECRET=your-production-secret
+heroku config:set GROQ_API_KEY=your-groq-key
+```
+
+3. **Deploy**
+```bash
+git subtree push --prefix server heroku main
+```
+
+### Frontend Deployment (Example: Vercel)
+
+1. **Install Vercel CLI**
+```bash
+npm install -g vercel
+```
+
+2. **Deploy from client directory**
+```bash
+cd client
+vercel
+```
+
+3. **Set environment variables in Vercel dashboard**
+- Add backend URL for production
+
+### Alternative Platforms
+
+**Backend**
+- Heroku (free tier)
+- Railway.app (easy deployment)
+- DigitalOcean App Platform
+- AWS Elastic Beanstalk
+- Google Cloud Run
+
+**Frontend**
+- Vercel (recommended for Vite/React)
+- Netlify
+- GitHub Pages (for static build)
+- Firebase Hosting
+- AWS S3 + CloudFront
+
+---
+
+## 📚 Additional Documentation
+
+- **GROQ_COMPLETE_REPORT.md** - Detailed AI integration guide
+- **GROQ_QUICKSTART.md** - Quick AI setup (2 minutes)
+- **AI_STATUS.md** - AI features and capabilities
+- **CURRENT_STATUS.txt** - Live system status
+- **server/README.md** - Backend-specific docs
+- **client/README.md** - Frontend-specific docs
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Commit changes: `git commit -am 'Add feature'`
+4. Push to branch: `git push origin feature-name`
+5. Submit a pull request
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## 👥 Team
+
+Built for DU Hacks Hackathon 2026
+
+---
+
+## 🙏 Acknowledgments
+
+- **Groq** - For providing ultra-fast AI inference
+- **Llama 3.3** - Meta's powerful language model
+- **React** - Facebook's UI library
+- **Express** - Fast web framework for Node.js
+- **Vite** - Next-generation frontend tooling
+
+---
+
+## 📞 Support
+
+For issues or questions:
+1. Check the troubleshooting section above
+2. Review the documentation files
+3. Check server logs for errors
+4. Test API endpoints with curl
+5. Open an issue on GitHub
+
+---
+
+**Last Updated**: February 21, 2026
+**Status**: ✅ Fully Operational
+**Version**: 2.0.0
 
 ✅ **API Structure Ready**
 - Controllers scaffolded
