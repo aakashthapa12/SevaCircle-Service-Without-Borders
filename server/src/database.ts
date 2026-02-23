@@ -71,7 +71,7 @@ const defaultData: Database = {
   bookings: []
 };
 
-let db: Awaited<ReturnType<typeof JSONFilePreset<Database>>>;
+let db: Awaited<ReturnType<typeof JSONFilePreset<Database>>> | undefined;
 
 export async function initDatabase() {
   // Initialize database
@@ -89,7 +89,7 @@ async function seedData() {
   const hashedPassword = bcrypt.hashSync('demo123', 10);
   const adminPassword = bcrypt.hashSync('admin123', 10);
 
-  db.data = {
+  db!.data = {
     users: [
       {
         id: 1,
@@ -131,12 +131,12 @@ async function seedData() {
     bookings: []
   };
 
-  await db.write();
+  await db!.write();
   console.log('✅ Database seeded with demo data');
 }
 
 export function getDB() {
-  return db;
+  return db!;
 }
 
 export default db;
