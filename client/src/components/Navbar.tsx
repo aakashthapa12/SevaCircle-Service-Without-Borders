@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Menu, X, Home, Briefcase, Calendar, User, LogOut, MessageCircle } from 'lucide-react';
+import { Menu, X, Home, Briefcase, Calendar, LogOut, MessageCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
