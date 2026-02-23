@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+// VITE_API_URL is set in Vercel environment variables
+// pointing to: https://sevacircle-service-without-borders.onrender.com
 const BASE_URL = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}/api`
   : '/api';
